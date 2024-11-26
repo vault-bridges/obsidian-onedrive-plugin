@@ -1,5 +1,5 @@
 # vscode
-.vscode 
+.vscode
 
 # Intellij
 *.iml
@@ -17,6 +17,10 @@ main.js
 
 # obsidian
 data.json
+cache.json
+test.cache
+.cache
 
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
+*.node
