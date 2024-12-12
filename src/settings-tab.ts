@@ -1,12 +1,12 @@
-import { type App, Notice, PluginSettingTab, Setting } from 'obsidian'
+import { Notice, PluginSettingTab, Setting } from 'obsidian'
 import type OneDrivePlugin from '../main'
 import { shell } from './electron'
 
 export class OneDriveSettingTab extends PluginSettingTab {
 	plugin: OneDrivePlugin
 
-	constructor(app: App, plugin: OneDrivePlugin) {
-		super(app, plugin)
+	constructor(plugin: OneDrivePlugin) {
+		super(plugin.app, plugin)
 		this.plugin = plugin
 	}
 
