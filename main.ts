@@ -3,12 +3,10 @@ import { FileSystemAdapter, MarkdownView, Modal, Notice, Plugin } from 'obsidian
 import { mount } from 'svelte'
 import { msalConfig } from './src/auth-config'
 import { AuthProvider } from './src/auth-provider'
-import { shell } from './src/electron'
 import { GraphClient } from './src/graph-client'
-import { extractKeyValuePairs, getCodeBlock } from './src/markdown-utils'
-import OnedriveWidget from './src/onedrive-widget.svelte'
+import { getCodeBlock } from './src/markdown-utils'
+import { OneDriveWidget } from './src/onedrive-widget'
 import { OneDriveSettingTab } from './src/settings-tab'
-import store from './src/store.svelte'
 
 interface OneDrivePluginSettings {
 	oneDriveDirectory: string
@@ -41,8 +39,6 @@ export default class OneDrivePlugin extends Plugin {
 		await this.loadSettings()
 		this.account = await this.authProvider.init()
 		this.client = new GraphClient(this.authProvider)
-
-		store.plugin = this
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt) => {
@@ -130,7 +126,7 @@ export default class OneDrivePlugin extends Plugin {
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000))
 
 		this.registerMarkdownCodeBlockProcessor('onedrive', (source, el) => {
-			mount(OnedriveWidget, { target: el, props: { source } })
+			mount(OneDriveWidget, { target: el, props: { source }, context: new Map([['plugin', this]]) })
 		})
 	}
 
