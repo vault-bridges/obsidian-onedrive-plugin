@@ -1,10 +1,14 @@
 import type { AccountInfo, AuthenticationResult } from '@azure/msal-common'
-import { type Editor, FileSystemAdapter, MarkdownView, Modal, Notice, Plugin } from 'obsidian'
+import { FileSystemAdapter, MarkdownView, Modal, Notice, Plugin } from 'obsidian'
+import { mount } from 'svelte'
 import { msalConfig } from './src/auth-config'
 import { AuthProvider } from './src/auth-provider'
 import { shell } from './src/electron'
 import { GraphClient } from './src/graph-client'
+import { extractKeyValuePairs, getCodeBlock } from './src/markdown-utils'
+import OnedriveWidget from './src/onedrive-widget.svelte'
 import { OneDriveSettingTab } from './src/settings-tab'
+import store from './src/store.svelte'
 
 interface OneDrivePluginSettings {
 	oneDriveDirectory: string
@@ -16,30 +20,32 @@ const DEFAULT_SETTINGS: OneDrivePluginSettings = {
 	account: null,
 }
 
-export class OneDrivePlugin extends Plugin {
-	account: AccountInfo | null
-	settings: OneDrivePluginSettings
-	authProvider: AuthProvider
-	client: GraphClient
-	basePath: string
-	pluginPath: string
+export default class OneDrivePlugin extends Plugin {
+	account!: AccountInfo | null
+	settings!: OneDrivePluginSettings
+	authProvider!: AuthProvider
+	client!: GraphClient
+	vaultPath!: string
+	pluginPath!: string
 
 	async onload() {
 		if (this.app.vault.adapter instanceof FileSystemAdapter) {
-			this.basePath = this.app.vault.adapter.getBasePath()
+			this.vaultPath = this.app.vault.adapter.getBasePath()
 			this.pluginPath = [
 				this.app.vault.configDir,
 				'plugins',
 				this.app.vault.adapter.getName(),
 			].join('/')
-			this.authProvider = new AuthProvider(msalConfig, `${this.basePath}/${this.pluginPath}`)
+			this.authProvider = new AuthProvider(msalConfig, `${this.vaultPath}/${this.pluginPath}`)
 		}
 		await this.loadSettings()
 		this.account = await this.authProvider.init()
 		this.client = new GraphClient(this.authProvider)
 
+		store.plugin = this
+
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
+		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt) => {
 			// Called when the user clicks the icon.
 			new Notice('This is a notice!')
 		})
@@ -62,7 +68,7 @@ export class OneDrivePlugin extends Plugin {
 		this.addCommand({
 			id: 'sample-editor-command',
 			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
+			editorCallback: (editor, view) => {
 				console.log(editor.getSelection())
 				editor.replaceSelection('Sample Editor Command')
 			},
@@ -71,7 +77,7 @@ export class OneDrivePlugin extends Plugin {
 		this.addCommand({
 			id: 'open-sample-modal-complex',
 			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
+			checkCallback: (checking) => {
 				// Conditions to check
 				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView)
 				if (markdownView) {
@@ -92,18 +98,19 @@ export class OneDrivePlugin extends Plugin {
 			const file = evt.dataTransfer?.files[0]
 			if (file?.type === 'application/pdf') {
 				evt.preventDefault()
-				console.log('start upload')
+				new Notice('Start upload')
+				const initialCursor = editor.getCursor()
+				const placeholder = getCodeBlock({ title: file.name })
+				const placeholderLineCount = placeholder.split('\n').length
+				editor.replaceRange(placeholder, initialCursor)
 				const driveItem = await this.client.uploadFile(file, this.settings.oneDriveDirectory)
-				if (driveItem) {
+				if (driveItem?.id) {
 					new Notice('File uploaded')
-					const data = { id: driveItem.id }
-					editor.replaceRange(
-						`\`\`\`onedrive
-${JSON.stringify(data, null, 2)}
-\`\`\`
-`,
-						editor.getCursor(),
-					)
+					const record = { id: driveItem.id, title: file.name }
+					editor.replaceRange(getCodeBlock(record), initialCursor, {
+						line: initialCursor.line + placeholderLineCount,
+						ch: 0,
+					})
 				} else {
 					new Notice('File upload failed')
 				}
@@ -115,64 +122,15 @@ ${JSON.stringify(data, null, 2)}
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
+		this.registerDomEvent(document, 'click', (evt) => {
 			console.log('click', evt)
 		})
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000))
 
-		this.registerMarkdownCodeBlockProcessor('onedrive', (source, el, ctx) => {
-			const fileCard = el.createEl('div')
-			console.log(JSON.parse(source))
-			this.client.getFileInfo(JSON.parse(source).id).then((file) => {
-				console.log(file)
-				console.log(file['@microsoft.graph.downloadUrl'])
-				fileCard.innerText = file.name
-				fileCard.createDiv()
-				fileCard.createEl('a', { href: file.webUrl, text: 'Open in OneDrive' })
-				fileCard
-					.createEl('button', { text: 'Download' })
-					.addEventListener('click', async function () {
-						this.disabled = true
-						this.innerText = 'Downloading...'
-						const url = file['@microsoft.graph.downloadUrl']
-						const response = await fetch(url)
-						const blob = await response.blob()
-						const urlObj = URL.createObjectURL(blob)
-						const link = document.createElement('a')
-						link.text = file.name
-						link.href = urlObj
-						link.download = file.name
-						link.click()
-						this.disabled = false
-						this.innerText = 'Download'
-					})
-
-				const path = this.pluginPath
-				const absPath = `${this.basePath}/${this.pluginPath}`
-				const vault = this.app.vault
-				fileCard.createEl('button', { text: 'Open' }).addEventListener('click', async function () {
-					this.disabled = true
-					this.innerText = 'Opening...'
-					const url = file['@microsoft.graph.downloadUrl']
-					const response = await fetch(url)
-					const arrayBuffer = await response.arrayBuffer()
-
-					const filePath = `${path}/.cache/${file.name}`
-					await vault.createBinary(filePath, arrayBuffer).catch((error) => {
-						console.log(error)
-					})
-
-					const res = await shell.openPath(`${absPath}/.cache/${file.name}`).catch((error) => {
-						console.log(error)
-					})
-					console.log(res)
-
-					this.disabled = false
-					this.innerText = 'Open'
-				})
-			})
+		this.registerMarkdownCodeBlockProcessor('onedrive', (source, el) => {
+			mount(OnedriveWidget, { target: el, props: { source } })
 		})
 	}
 
@@ -198,5 +156,3 @@ class SampleModal extends Modal {
 		contentEl.empty()
 	}
 }
-
-export default OneDrivePlugin

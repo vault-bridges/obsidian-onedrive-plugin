@@ -22,7 +22,7 @@ export class AuthProvider {
 	private readonly msalConfig: Configuration
 	private readonly scopes: Array<string>
 	private readonly cachePath: string
-	private clientApplication: PublicClientApplication
+	private clientApplication!: PublicClientApplication
 	private account: AccountInfo | null
 
 	constructor(msalConfig: Configuration, pluginPath: string) {
