@@ -5,6 +5,7 @@ import { File } from 'lucide-svelte'
 import { Menu, Notice } from 'obsidian'
 import { getContext } from 'svelte'
 import type OneDrivePlugin from '../../main'
+import { FileInfoModal } from './file-info-modal'
 
 type Props = {
 	fileInfo: DriveItem
@@ -64,12 +65,21 @@ async function copyOneDriveUrl() {
 	}
 }
 
+async function showFileInfo() {
+	if (fileInfo) {
+		new FileInfoModal(plugin.app, fileInfo).open()
+	} else {
+		new Notice('File info not found')
+	}
+}
+
 function showMenu(event: MouseEvent) {
 	const menu = new Menu()
 	menu.addItem((item) => item.setTitle('Open in OneDrive').onClick(openInOneDrive))
 	menu.addItem((item) => item.setTitle('Copy OneDrive URL').onClick(copyOneDriveUrl))
 	menu.addItem((item) => item.setTitle('Open').onClick(open))
 	menu.addItem((item) => item.setTitle('Save as...').onClick(download))
+	menu.addItem((item) => item.setTitle('File info').onClick(showFileInfo))
 	const target = event.target
 	if (target instanceof HTMLElement) {
 		const rect = target.getBoundingClientRect()
