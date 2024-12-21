@@ -8,6 +8,7 @@ import {
 } from '@microsoft/microsoft-graph-client'
 import type { DriveItem } from '@microsoft/microsoft-graph-types'
 import { Notice } from 'obsidian'
+import type { OneDrivePluginSettings } from '../main'
 import type { AuthProvider } from './auth-provider'
 
 export class GraphClient {
@@ -54,7 +55,7 @@ export class GraphClient {
 		return response as DriveItem
 	}
 
-	async uploadFile(file: File, path: string) {
+	async uploadFile(file: File, settings: OneDrivePluginSettings) {
 		const client = await this.getClient()
 
 		const progress = (range?: Range, extraCallbackParam?: unknown) => {
@@ -67,10 +68,10 @@ export class GraphClient {
 		}
 
 		const options: OneDriveLargeFileUploadOptions = {
-			path: `/${path}`,
+			path: `/${settings.oneDriveDirectory}`,
 			fileName: file.name,
 			rangeSize: 1024 * 1024,
-			conflictBehavior: 'fail',
+			conflictBehavior: settings.conflictBehavior,
 			uploadEventHandlers,
 		}
 
@@ -80,7 +81,12 @@ export class GraphClient {
 			client,
 			fileObject,
 			options,
-		)
+		).catch((error) => {
+			const message = error instanceof Error ? error.message : error
+			new Notice(`Can't upload file: ${message}`)
+			console.error(error)
+		})
+		if (!uploadTask) return
 		const uploadResult = await uploadTask.upload()
 		return uploadResult.responseBody as DriveItem
 	}

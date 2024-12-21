@@ -8,14 +8,16 @@ import { getCodeBlock } from './src/markdown-utils'
 import { OneDriveWidget } from './src/onedrive-widget'
 import { OneDriveSettingTab } from './src/settings-tab'
 
-interface OneDrivePluginSettings {
+export interface OneDrivePluginSettings {
 	oneDriveDirectory: string
 	showPreview: boolean
+	conflictBehavior: 'rename' | 'fail' | 'replace'
 }
 
 const DEFAULT_SETTINGS: OneDrivePluginSettings = {
 	oneDriveDirectory: 'Obsidian',
 	showPreview: false,
+	conflictBehavior: 'fail',
 }
 
 type Callback = (value: typeof DEFAULT_SETTINGS) => void
@@ -53,7 +55,7 @@ export default class OneDrivePlugin extends Plugin {
 				const placeholder = getCodeBlock({ title: file.name })
 				const placeholderLineCount = placeholder.split('\n').length
 				editor.replaceRange(placeholder, initialCursor)
-				const driveItem = await this.client.uploadFile(file, this.settings.oneDriveDirectory)
+				const driveItem = await this.client.uploadFile(file, this.settings)
 				if (driveItem?.id) {
 					new Notice('File uploaded')
 					const record = { id: driveItem.id, title: file.name }

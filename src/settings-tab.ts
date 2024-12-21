@@ -25,6 +25,7 @@ export class OneDriveSettingTab extends PluginSettingTab {
 	private renderLoggedInSettings(containerEl: HTMLElement) {
 		this.renderAccountSetting(containerEl)
 		this.renderDirectorySetting(containerEl)
+		this.renderConflictSetting(containerEl)
 		new Setting(this.containerEl).setName('Rendering').setHeading()
 		this.renderRenderingSetting(containerEl)
 	}
@@ -97,6 +98,21 @@ export class OneDriveSettingTab extends PluginSettingTab {
 					this.display()
 				})
 		}
+	}
+
+	private renderConflictSetting(containerEl: HTMLElement) {
+		new Setting(containerEl)
+			.setName('Conflict resolution')
+			.setDesc('Upload files with the same name as existing files')
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOptions({ fail: 'Fail', rename: 'Rename', replace: 'Replace' })
+					.setValue(this.plugin.settings.conflictBehavior)
+					.onChange(async (value) => {
+						this.plugin.settings.conflictBehavior = value as 'fail' | 'rename' | 'replace'
+						await this.plugin.saveSettings()
+					}),
+			)
 	}
 
 	private renderRenderingSetting(containerEl: HTMLElement) {
