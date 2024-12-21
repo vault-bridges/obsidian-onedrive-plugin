@@ -52,13 +52,14 @@ export default class OneDrivePlugin extends Plugin {
 				evt.preventDefault()
 				new Notice('Start upload')
 				const initialCursor = editor.getCursor()
-				const placeholder = getCodeBlock({ title: file.name })
+				const title = file.name.replace(/.[^.]+$/, '') // Remove file extension
+				const placeholder = getCodeBlock({ title })
 				const placeholderLineCount = placeholder.split('\n').length
 				editor.replaceRange(placeholder, initialCursor)
 				const driveItem = await this.client.uploadFile(file, this.settings)
 				if (driveItem?.id) {
 					new Notice('File uploaded')
-					const record = { id: driveItem.id, title: file.name }
+					const record = { id: driveItem.id, title }
 					editor.replaceRange(getCodeBlock(record), initialCursor, {
 						line: initialCursor.line + placeholderLineCount,
 						ch: 0,
