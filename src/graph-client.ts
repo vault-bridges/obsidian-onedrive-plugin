@@ -74,6 +74,9 @@ export class GraphClient {
 
 	async getFileInfo(fileId: string) {
 		const client = await this.getClient()
-		return (await client.api(`/me/drive/items/${fileId}`).get()) as DriveItem
+		return (await client
+			.api(`/me/drive/items/${fileId}`)
+			.query({ expand: 'thumbnails' })
+			.get()) as DriveItem
 	}
 }

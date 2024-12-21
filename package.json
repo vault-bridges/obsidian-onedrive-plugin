@@ -16,6 +16,7 @@
 		"@douglasneuroinformatics/esbuild-plugin-native-modules": "^1.0.0",
 		"@microsoft/microsoft-graph-types": "^2.40.0",
 		"@tsconfig/svelte": "^5.0.4",
+		"@types/electron": "npm:@ophidian/electron-types@24.3.1",
 		"@types/node": "^22.10.1",
 		"builtin-modules": "4.0.0",
 		"esbuild": "0.24.0",
@@ -33,6 +34,7 @@
 		"@tanstack/query-async-storage-persister": "^5.62.7",
 		"@tanstack/svelte-query": "^5.62.7",
 		"@tanstack/svelte-query-persist-client": "^5.62.7",
-		"idb-keyval": "^6.2.1"
+		"idb-keyval": "^6.2.1",
+		"lucide-svelte": "^0.469.0"
 	}
 }

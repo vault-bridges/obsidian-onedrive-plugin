@@ -11,8 +11,8 @@ import {
 	PersistenceCachePlugin,
 	PersistenceCreator,
 } from '@azure/msal-node-extensions'
+import { shell } from 'electron'
 import { msalConfig } from './auth-config'
-import { shell } from './electron'
 
 type BaseTokenRequest = {
 	scopes: Array<string>
