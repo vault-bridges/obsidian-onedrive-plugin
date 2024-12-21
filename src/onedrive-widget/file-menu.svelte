@@ -34,10 +34,14 @@ async function open() {
 	const name = fileInfo.name
 	if (!url || !name) return
 
-	const filePath = `${plugin.pluginPath}/.cache/${name}`
-	const exists = await plugin.app.vault.adapter.exists(filePath)
+	const dirPath = `${plugin.pluginPath}/.cache`
+	const filePath = `${dirPath}/${name}`
 
-	if (!exists) {
+	if (!(await plugin.app.vault.adapter.exists(dirPath))) {
+		await plugin.app.vault.createFolder(dirPath)
+	}
+
+	if (!(await plugin.app.vault.adapter.exists(filePath))) {
 		const response = await fetch(url)
 		const arrayBuffer = await response.arrayBuffer()
 		await plugin.app.vault.createBinary(filePath, arrayBuffer)
