@@ -12,6 +12,7 @@ import {
 	PersistenceCreator,
 } from '@azure/msal-node-extensions'
 import { shell } from 'electron'
+import { Notice } from 'obsidian'
 import { msalConfig } from './auth-config'
 
 type BaseTokenRequest = {
@@ -57,8 +58,15 @@ export class AuthProvider {
 	}
 
 	async login() {
-		const authResponse = await this.getToken()
-		return this.handleResponse(authResponse)
+		try {
+			const authResponse = await this.getToken()
+			return this.handleResponse(authResponse)
+		} catch (error) {
+			const message = error instanceof Error ? error.message : error
+			new Notice(`Failed to log in: ${message}`)
+			console.error(error)
+			return null
+		}
 	}
 
 	async logout() {
@@ -84,7 +92,9 @@ export class AuthProvider {
 			await cache.removeAccount(this.account)
 			this.account = null
 		} catch (error) {
-			console.log(error)
+			const message = error instanceof Error ? error.message : error
+			new Notice(`Logout failed: ${message}`)
+			console.error(error)
 		}
 	}
 

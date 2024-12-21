@@ -7,6 +7,7 @@ import {
 	type UploadEventHandlers,
 } from '@microsoft/microsoft-graph-client'
 import type { DriveItem } from '@microsoft/microsoft-graph-types'
+import { Notice } from 'obsidian'
 import type { AuthProvider } from './auth-provider'
 
 export class GraphClient {
@@ -27,18 +28,30 @@ export class GraphClient {
 
 	async listRootDirectories() {
 		const client = await this.getClient()
-		const filesResponse = await client.api('/me/drive/root/children').get()
+		const filesResponse = await client
+			.api('/me/drive/root/children')
+			.get()
+			.catch((error) => {
+				const message = error instanceof Error ? error.message : error
+				new Notice(`Failed to check directories: ${message}`)
+				console.error(error)
+				return { value: [] }
+			})
 		const files: DriveItem[] = filesResponse.value
 		return files
 	}
 
 	async createFolder(name: string) {
 		const client = await this.getClient()
-		return await client.api('/me/drive/root/children').post({
-			name,
-			folder: {},
-			'@microsoft.graph.conflictBehavior': 'fail',
-		})
+		const response = await client
+			.api('/me/drive/root/children')
+			.post({ name, folder: {}, '@microsoft.graph.conflictBehavior': 'fail' })
+			.catch((error) => {
+				const message = error instanceof Error ? error.message : error
+				new Notice(`Can't create directory: ${message}`)
+				console.error(error)
+			})
+		return response as DriveItem
 	}
 
 	async uploadFile(file: File, path: string) {
