@@ -25,6 +25,8 @@ export class OneDriveSettingTab extends PluginSettingTab {
 	private renderLoggedInSettings(containerEl: HTMLElement) {
 		this.renderAccountSetting(containerEl)
 		this.renderDirectorySetting(containerEl)
+		new Setting(this.containerEl).setName('Rendering').setHeading()
+		this.renderRenderingSetting(containerEl)
 	}
 
 	private renderLoggedOutSettings(containerEl: HTMLElement) {
@@ -95,5 +97,17 @@ export class OneDriveSettingTab extends PluginSettingTab {
 					this.display()
 				})
 		}
+	}
+
+	private renderRenderingSetting(containerEl: HTMLElement) {
+		new Setting(containerEl)
+			.setName('Display preview')
+			.setDesc('Display preview of uploaded files')
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.showPreview).onChange(async (value) => {
+					this.plugin.settings.showPreview = value
+					await this.plugin.saveSettings()
+				}),
+			)
 	}
 }

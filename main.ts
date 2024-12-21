@@ -10,11 +10,15 @@ import { OneDriveSettingTab } from './src/settings-tab'
 
 interface OneDrivePluginSettings {
 	oneDriveDirectory: string
+	showPreview: boolean
 }
 
 const DEFAULT_SETTINGS: OneDrivePluginSettings = {
 	oneDriveDirectory: 'Obsidian',
+	showPreview: false,
 }
+
+type Callback = (value: typeof DEFAULT_SETTINGS) => void
 
 export default class OneDrivePlugin extends Plugin {
 	account!: AccountInfo | null
@@ -23,6 +27,7 @@ export default class OneDrivePlugin extends Plugin {
 	client!: GraphClient
 	vaultPath!: string
 	pluginPath!: string
+	callbacks: Callback[] = []
 
 	async onload() {
 		if (this.app.vault.adapter instanceof FileSystemAdapter) {
@@ -77,5 +82,11 @@ export default class OneDrivePlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings)
+		for (const callback of this.callbacks) {
+			callback(this.settings)
+		}
+	}
+	subscribe(callback: Callback) {
+		this.callbacks.push(callback)
 	}
 }

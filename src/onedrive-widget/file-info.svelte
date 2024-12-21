@@ -9,8 +9,15 @@ type Props = {
 	fileId: string
 	title: string
 }
-const { fileId, title }: Props = $props()
+
 const plugin = getContext<OneDrivePlugin>('plugin')
+
+const { fileId, title }: Props = $props()
+let showPreview = $state(plugin.settings.showPreview)
+
+plugin.subscribe((value) => {
+	showPreview = value.showPreview
+})
 
 const fileInfo = createQuery({
 	queryKey: ['file', fileId],
@@ -33,11 +40,10 @@ const fileInfo = createQuery({
 	{#if !fileId}Uploading...{/if}
 	{#if $fileInfo.isLoading}Loading...{/if}
 	{#if $fileInfo.isError}{$fileInfo.error.message}{/if}
-	{#if $fileInfo.data && $fileInfo.data.thumbnails && false}
-		<div>
-			a preview will be here
-<!--			<img src={$fileInfo.data.thumbnails[0].large?.url} alt="">-->
-		</div>
+	{#if showPreview && $fileInfo.data?.thumbnails}
+		{#each $fileInfo.data.thumbnails as thumbnail}
+			<img src={thumbnail.large?.url} alt="">
+		{/each}
 	{/if}
 </div>
 
