@@ -1,6 +1,5 @@
 import type { AccountInfo, AuthenticationResult } from '@azure/msal-common'
 import {
-	type Configuration,
 	InteractionRequiredAuthError,
 	PublicClientApplication,
 	type SilentFlowRequest,
@@ -20,20 +19,18 @@ type BaseTokenRequest = {
 }
 
 export class AuthProvider {
-	private readonly msalConfig: Configuration
 	private readonly scopes: Array<string>
 	private readonly cachePath: string
 	private clientApplication!: PublicClientApplication
 	private account: AccountInfo | null
 
-	constructor(msalConfig: Configuration, pluginPath: string) {
+	constructor(pluginPath: string) {
 		/**
 		 * Initialize a public client application. For more information, visit:
 		 * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md
 		 */
-		this.msalConfig = msalConfig
 		this.account = null
-		this.scopes = ['Files.ReadWrite.All']
+		this.scopes = ['Files.ReadWrite.AppFolder']
 		this.cachePath = [pluginPath, 'cache.json'].join('/')
 	}
 
@@ -70,32 +67,11 @@ export class AuthProvider {
 	}
 
 	async logout() {
-		if (!this.account) return
-
-		try {
-			/**
-			 * If you would like to end the session with AAD, use the logout endpoint. You'll need to enable
-			 * the optional token claim 'login_hint' for this to work as expected. For more information, visit:
-			 * https://learn.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
-			 */
-			if (
-				this.account.idTokenClaims &&
-				Object.hasOwn(this.account.idTokenClaims, 'login_hint') &&
-				this.account.idTokenClaims.login_hint != null
-			) {
-				shell.openExternal(
-					`${this.msalConfig.auth.authority}/oauth2/v2.0/logout?logout_hint=${encodeURIComponent(this.account.idTokenClaims.login_hint)}`,
-				)
-			}
-
-			const cache = this.clientApplication.getTokenCache()
-			await cache.removeAccount(this.account)
-			this.account = null
-		} catch (error) {
-			const message = error instanceof Error ? error.message : error
-			new Notice(`Logout failed: ${message}`)
-			console.error(error)
+		const cache = this.clientApplication.getTokenCache()
+		for (const account of await cache.getAllAccounts()) {
+			await cache.removeAccount(account)
 		}
+		this.account = null
 	}
 
 	private async getToken() {

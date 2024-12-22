@@ -1,7 +1,6 @@
 import type { AccountInfo } from '@azure/msal-common'
 import { FileSystemAdapter, Notice, Plugin } from 'obsidian'
 import { mount } from 'svelte'
-import { msalConfig } from './src/auth-config'
 import { AuthProvider } from './src/auth-provider'
 import { GraphClient } from './src/graph-client'
 import { getCodeBlock } from './src/markdown-utils'
@@ -39,7 +38,7 @@ export default class OneDrivePlugin extends Plugin {
 				'plugins',
 				this.app.vault.adapter.getName(),
 			].join('/')
-			this.authProvider = new AuthProvider(msalConfig, `${this.vaultPath}/${this.pluginPath}`)
+			this.authProvider = new AuthProvider(`${this.vaultPath}/${this.pluginPath}`)
 		}
 		await this.loadSettings()
 		this.account = await this.authProvider.init()
