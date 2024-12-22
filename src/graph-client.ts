@@ -30,7 +30,7 @@ export class GraphClient {
 	async listRootDirectories() {
 		const client = await this.getClient()
 		const filesResponse = await client
-			.api('/me/drive/root/children')
+			.api('/drive/special/approot/children')
 			.get()
 			.catch((error) => {
 				const message = error instanceof Error ? error.message : error
@@ -45,7 +45,7 @@ export class GraphClient {
 	async createFolder(name: string) {
 		const client = await this.getClient()
 		const response = await client
-			.api('/me/drive/root/children')
+			.api('/drive/special/approot/children')
 			.post({ name, folder: {}, '@microsoft.graph.conflictBehavior': 'fail' })
 			.catch((error) => {
 				const message = error instanceof Error ? error.message : error
@@ -68,7 +68,7 @@ export class GraphClient {
 		}
 
 		const options: OneDriveLargeFileUploadOptions = {
-			path: `/${settings.oneDriveDirectory}`,
+			uploadSessionURL: `/drive/special/approot:/${settings.oneDriveDirectory}/${file.name}:/createUploadSession`,
 			fileName: file.name,
 			rangeSize: 1024 * 1024,
 			conflictBehavior: settings.conflictBehavior,
