@@ -41,7 +41,7 @@ export default class OneDrivePlugin extends Plugin {
 			this.authProvider = new AuthProvider(`${this.vaultPath}/${this.pluginPath}`)
 		}
 		await this.loadSettings()
-		this.account = await this.authProvider.init()
+		this.account = await this.authProvider.init(this.app.vault)
 		this.client = new GraphClient(this.authProvider)
 
 		this.app.workspace.on('editor-drop', async (evt, editor) => {

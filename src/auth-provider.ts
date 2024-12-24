@@ -4,11 +4,10 @@ import {
 	PublicClientApplication,
 	type SilentFlowRequest,
 } from '@azure/msal-node'
-import { PersistenceCachePlugin } from '@azure/msal-node-extensions'
 import { shell } from 'electron'
-import { Notice } from 'obsidian'
+import { Notice, type Vault } from 'obsidian'
 import { msalConfig } from './auth-config'
-import { AuthPersistence } from './auth-persistence'
+import { AuthPersistence, PersistenceCachePlugin } from './persistense'
 
 type BaseTokenRequest = {
 	scopes: Array<string>
@@ -30,8 +29,9 @@ export class AuthProvider {
 		this.cachePath = [pluginPath, 'cache.json'].join('/')
 	}
 
-	async init() {
+	async init(vault: Vault) {
 		const persistence = await AuthPersistence.create(
+			vault,
 			this.cachePath,
 			'obsidian-onedrive-plugin-account',
 			msalConfig.system?.loggerOptions,

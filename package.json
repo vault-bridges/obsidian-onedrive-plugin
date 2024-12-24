@@ -13,23 +13,19 @@
 	"license": "MIT",
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
-		"@douglasneuroinformatics/esbuild-plugin-native-modules": "^1.0.0",
 		"@microsoft/microsoft-graph-types": "^2.40.0",
 		"@tsconfig/svelte": "^5.0.4",
 		"@types/electron": "npm:@ophidian/electron-types@24.3.1",
-		"@types/node": "^22.10.1",
 		"builtin-modules": "4.0.0",
 		"esbuild": "0.24.0",
 		"esbuild-svelte": "^0.9.0",
 		"obsidian": "latest",
 		"svelte": "^5.10.1",
 		"svelte-preprocess": "^6.0.3",
-		"tslib": "2.8.1",
 		"typescript": "5.7.2"
 	},
 	"dependencies": {
 		"@azure/msal-node": "^2.16.2",
-		"@azure/msal-node-extensions": "^1.5.0",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
 		"@tanstack/query-async-storage-persister": "^5.62.7",
 		"@tanstack/svelte-query": "^5.62.7",

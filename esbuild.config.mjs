@@ -1,5 +1,4 @@
 import process from 'node:process'
-import { nativeModulesPlugin } from '@douglasneuroinformatics/esbuild-plugin-native-modules'
 import builtins from 'builtin-modules'
 import esbuild from 'esbuild'
 import esbuildSvelte from 'esbuild-svelte'
@@ -11,7 +10,6 @@ if you want to view the source, please visit the github repository of this plugi
 */
 `
 const prod = process.argv[2] === 'production'
-// const __dirname = dirname(fileURLToPath(import.meta.dirname))
 
 const context = await esbuild.context({
 	banner: {
@@ -44,7 +42,6 @@ const context = await esbuild.context({
 	minify: prod,
 	publicPath: import.meta.dirname,
 	plugins: [
-		nativeModulesPlugin(),
 		esbuildSvelte({
 			compilerOptions: { css: 'injected' },
 			preprocess: sveltePreprocess(),

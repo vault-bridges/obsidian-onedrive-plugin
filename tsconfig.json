@@ -14,7 +14,7 @@
 		"noImplicitAny": true,
 		"strictNullChecks": true,
 		"target": "ES6",
-		"types": ["svelte", "node"]
+		"types": ["svelte"]
 	},
 	"include": ["**/*.ts"]
 }
