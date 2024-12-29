@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { DriveItem } from '@microsoft/microsoft-graph-types'
-import { clipboard, shell } from 'electron'
+// import { clipboard, shell } from 'electron'
 import { File } from 'lucide-svelte'
 import { Menu, Notice } from 'obsidian'
 import { getContext } from 'svelte'
@@ -47,14 +47,14 @@ async function open() {
 		await plugin.app.vault.createBinary(filePath, arrayBuffer)
 	}
 
-	await shell
-		.openPath(`${plugin.vaultPath}/${filePath}`)
-		.catch((error) => new Notice(error.message))
+	// await shell
+	// 	.openPath(`${plugin.vaultPath}/${filePath}`)
+	// 	.catch((error) => new Notice(error.message))
 }
 
 async function openInOneDrive() {
 	if (fileInfo.webUrl) {
-		await shell.openExternal(fileInfo.webUrl)
+		// await shell.openExternal(fileInfo.webUrl)
 	} else {
 		new Notice('File url not found')
 	}
@@ -62,7 +62,7 @@ async function openInOneDrive() {
 
 async function copyOneDriveUrl() {
 	if (fileInfo.webUrl) {
-		clipboard.writeText(fileInfo.webUrl)
+		// clipboard.writeText(fileInfo.webUrl)
 		new Notice('Copied to clipboard')
 	} else {
 		new Notice('File url not found')
@@ -79,9 +79,9 @@ async function showFileInfo() {
 
 function showMenu(event: MouseEvent) {
 	const menu = new Menu()
-	menu.addItem((item) => item.setTitle('Open in OneDrive').onClick(openInOneDrive))
-	menu.addItem((item) => item.setTitle('Copy OneDrive URL').onClick(copyOneDriveUrl))
-	menu.addItem((item) => item.setTitle('Open').onClick(open))
+	// menu.addItem((item) => item.setTitle('Open in OneDrive').onClick(openInOneDrive))
+	// menu.addItem((item) => item.setTitle('Copy OneDrive URL').onClick(copyOneDriveUrl))
+	// menu.addItem((item) => item.setTitle('Open').onClick(open))
 	menu.addItem((item) => item.setTitle('Save as...').onClick(download))
 	menu.addItem((item) => item.setTitle('File info').onClick(showFileInfo))
 	const target = event.target

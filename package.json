@@ -25,7 +25,7 @@
 		"typescript": "5.7.2"
 	},
 	"dependencies": {
-		"@azure/msal-node": "^2.16.2",
+		"@azure/msal-browser": "^3.28.0",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
 		"@tanstack/query-async-storage-persister": "^5.62.7",
 		"@tanstack/svelte-query": "^5.62.7",

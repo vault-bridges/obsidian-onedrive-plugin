@@ -38,10 +38,10 @@ export default class OneDrivePlugin extends Plugin {
 				'plugins',
 				this.app.vault.adapter.getName(),
 			].join('/')
-			this.authProvider = new AuthProvider(this.pluginPath)
 		}
+		this.authProvider = new AuthProvider()
 		await this.loadSettings()
-		this.account = await this.authProvider.init(this.app.vault)
+		this.account = await this.authProvider.init()
 		this.client = new GraphClient(this.authProvider)
 
 		this.app.workspace.on('editor-drop', async (evt, editor) => {
@@ -73,6 +73,10 @@ export default class OneDrivePlugin extends Plugin {
 
 		this.registerMarkdownCodeBlockProcessor('onedrive', (source, el) => {
 			mount(OneDriveWidget, { target: el, props: { source }, context: new Map([['plugin', this]]) })
+		})
+
+		this.registerObsidianProtocolHandler('onedrive', (path) => {
+			this.authProvider.clientApplication.handleRedirectPromise(path.hash)
 		})
 	}
 

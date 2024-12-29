@@ -1,13 +1,12 @@
-import type { AccountInfo, AuthenticationResult } from '@azure/msal-common'
 import {
+	BrowserCacheLocation,
 	InteractionRequiredAuthError,
 	PublicClientApplication,
-	type SilentFlowRequest,
-} from '@azure/msal-node'
-import { shell } from 'electron'
-import { Notice, type Vault } from 'obsidian'
+	type SilentRequest,
+} from '@azure/msal-browser'
+import type { AccountInfo, AuthenticationResult } from '@azure/msal-common'
+import { Notice } from 'obsidian'
 import { msalConfig } from './auth-config'
-import { AuthPersistence, PersistenceCachePlugin } from './persistense'
 
 type BaseTokenRequest = {
 	scopes: Array<string>
@@ -15,33 +14,27 @@ type BaseTokenRequest = {
 
 export class AuthProvider {
 	private readonly scopes: Array<string>
-	private readonly cachePath: string
-	private clientApplication!: PublicClientApplication
+	clientApplication!: PublicClientApplication
 	private account: AccountInfo | null
 
-	constructor(pluginPath: string) {
+	constructor() {
 		/**
 		 * Initialize a public client application. For more information, visit:
 		 * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md
 		 */
 		this.account = null
 		this.scopes = ['Files.ReadWrite.AppFolder']
-		this.cachePath = [pluginPath, 'cache.json'].join('/')
 	}
 
-	async init(vault: Vault) {
-		const persistence = await AuthPersistence.create(
-			vault,
-			this.cachePath,
-			'obsidian-onedrive-plugin-account',
-			msalConfig.system?.loggerOptions,
-		)
+	async init() {
 		this.clientApplication = new PublicClientApplication({
 			...msalConfig,
 			cache: {
-				cachePlugin: new PersistenceCachePlugin(persistence),
+				cacheLocation: BrowserCacheLocation.LocalStorage,
 			},
 		})
+
+		await this.clientApplication.initialize()
 
 		return this.getAccount()
 	}
@@ -49,6 +42,7 @@ export class AuthProvider {
 	async login() {
 		try {
 			const authResponse = await this.getToken()
+			// @ts-expect-error
 			return this.handleResponse(authResponse)
 		} catch (error) {
 			const message = error instanceof Error ? error.message : error
@@ -59,10 +53,7 @@ export class AuthProvider {
 	}
 
 	async logout() {
-		const cache = this.clientApplication.getTokenCache()
-		for (const account of await cache.getAllAccounts()) {
-			await cache.removeAccount(account)
-		}
+		const cache = this.clientApplication.logoutPopup()
 		this.account = null
 	}
 
@@ -88,7 +79,7 @@ export class AuthProvider {
 		}
 	}
 
-	private async getTokenSilent(tokenRequest: SilentFlowRequest) {
+	private async getTokenSilent(tokenRequest: SilentRequest) {
 		try {
 			return await this.clientApplication.acquireTokenSilent(tokenRequest)
 		} catch (error) {
@@ -102,13 +93,8 @@ export class AuthProvider {
 	}
 
 	private async getTokenInteractive(tokenRequest: BaseTokenRequest) {
-		return this.clientApplication.acquireTokenInteractive({
-			...tokenRequest,
-			openBrowser: async (url) => shell.openExternal(url),
-			successTemplate: '<h1>Successfully signed in!</h1> <p>You can close this window now.</p>',
-			errorTemplate:
-				'<h1>Oops! Something went wrong</h1> <p>Check the console for more information.</p>',
-		})
+		console.log('getTokenInteractive')
+		return this.clientApplication.acquireTokenRedirect(tokenRequest)
 	}
 
 	/**
@@ -125,8 +111,7 @@ export class AuthProvider {
 	 * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
 	 */
 	private async getAccount() {
-		const cache = this.clientApplication.getTokenCache()
-		const currentAccounts = await cache.getAllAccounts()
+		const currentAccounts = this.clientApplication.getAllAccounts()
 
 		if (!currentAccounts) {
 			console.log('No accounts detected')
