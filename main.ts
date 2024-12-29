@@ -38,7 +38,7 @@ export default class OneDrivePlugin extends Plugin {
 				'plugins',
 				this.app.vault.adapter.getName(),
 			].join('/')
-			this.authProvider = new AuthProvider(`${this.vaultPath}/${this.pluginPath}`)
+			this.authProvider = new AuthProvider(this.pluginPath)
 		}
 		await this.loadSettings()
 		this.account = await this.authProvider.init(this.app.vault)
