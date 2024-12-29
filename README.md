@@ -1,96 +1,73 @@
-# Obsidian Sample Plugin
+# Obsidian OneDrive Plugin
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Welcome to the **Obsidian OneDrive Plugin**!
+This plugin is designed to make Obsidian better by adding OneDrive integration.
+It solves the problem of needing a place to store and manage files outside your vault that are not in Markdown.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Motivation
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+Obsidian is a powerful tool for managing text files, especially because of its linking feature, 
+making them more organized.
+While Obsidian also supports other file formats, such as images and PDFs,
+storing all these files within your vault can significantly increase its size.
+This growth can present challenges for mobile syncing and local storage capacity.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+The Obsidian OneDrive plugin solves this problem by letting users store large files separately from the vault.
+This makes the vault smaller, which makes syncing on mobile easier.
+It also gives you on-demand access to these files on your mobile devices,
+while keeping the files intact and easy to use.
 
-## First time developing plugins?
+## Features
 
-Quick starting guide for new plugin devs:
+- **Drag-and-Drop Upload**: Upload files to OneDrive by drag-and-dropping them into the Obsidian editor.
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+- **Dynamic File Widgets**: After uploading, files are displayed as widgets with a title derived from the filename. Users can change the title by editing the widget's code block.
 
-## Releasing new releases
+- **Interactive File Menu**: The file icon within the widget is clickable and brings up a menu with several options:
+	- Open the file online in OneDrive
+	- Open the file locally in the default application
+	- Download the file to a chosen directory
+	- Display a modal with detailed file information, including filename, size, type, OneDrive path, and creation/update dates
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+## Installation
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+> [!NOTE]
+> This plugin is currently in its **alpha** state, and I welcome feedback to enhance its functionality and stability.
 
-## Adding your plugin to the community plugin list
+Before installing,
+ensure you have the [BRAT Obsidian plugin](https://tfthacker.com/BRAT) installed and running.
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+Then follow [the BRAT instructions](https://tfthacker.com/brat-quick-guide#Adding+a+beta+plugin).
+When prompted, use `vault-bridges/obsidian-onedrive-plugin` as the plugin name to add it to your Obsidian setup.
 
-## How to use
+## Usage
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+### Setting Up OneDrive Access
 
-## Manually installing the plugin
+To begin using the Obsidian OneDrive Integration plugin, you need to set up access with your OneDrive account.
+Ensure you have an active account and authorize the plugin from within Obsidian.
+It will specifically access the `My files > Apps > Graph` directory while ensuring the privacy of your other files.
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+### Configuring Storage Preferences
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+Once authorization is complete, configure your storage preferences.
+Select a directory name for storing files; by default, it is `My files > Apps > Graph > Obsidian`.
+You can also set how the plugin handles upload conflicts, choosing between failing, replacing, or renaming the files.
 
-## Funding URL
+### Adjusting Display Options
 
-You can include funding URLs where people who use your plugin can financially support it.
+Customize how files are displayed within Obsidian by adjusting display settings.
+You can enable or disable file previews in the file widgets.
+This is disabled by default for performance reasons but can be enabled for visual previews.
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+### Using the Plugin
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
+With everything set up, you can use the plugin by dragging and dropping files into the Obsidian editor.
+The plugin uploads these files to the selected OneDrive folder
+and displays them as widgets with an actionable file icon.
+In this alpha version, only PDF files are supported, and copy-paste functionality is not yet available.
 
-If you have multiple URLs, you can also do:
+---
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
-
-## API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
+I look forward to your feedback as I continue to refine the Obsidian OneDrive plugin.
+Thank you for helping me enhance the versatility and functionality of Obsidian!

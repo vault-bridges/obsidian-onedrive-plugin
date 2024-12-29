@@ -3,7 +3,7 @@
 	"name": "OneDrive Plugin",
 	"version": "0.0.1",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
+	"description": "Upload large files to OneDrive with seamless Obsidian integration.",
 	"author": "sairus2k",
 	"authorUrl": "https://github.com/sairus2k",
 	"fundingUrl": "https://github.com/sponsors/sairus2k",
