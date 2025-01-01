@@ -1,20 +1,16 @@
 import {
-	BrowserCacheLocation,
 	InteractionRequiredAuthError,
 	PublicClientApplication,
+	type RedirectRequest,
 	type SilentRequest,
 } from '@azure/msal-browser'
 import type { AccountInfo, AuthenticationResult } from '@azure/msal-common'
 import { Notice } from 'obsidian'
 import { msalConfig } from './auth-config'
 
-type BaseTokenRequest = {
-	scopes: Array<string>
-}
-
 export class AuthProvider {
 	private readonly scopes: Array<string>
-	clientApplication!: PublicClientApplication
+	private clientApplication!: PublicClientApplication
 	private account: AccountInfo | null
 
 	constructor() {
@@ -27,12 +23,7 @@ export class AuthProvider {
 	}
 
 	async init() {
-		this.clientApplication = new PublicClientApplication({
-			...msalConfig,
-			cache: {
-				cacheLocation: BrowserCacheLocation.LocalStorage,
-			},
-		})
+		this.clientApplication = new PublicClientApplication(msalConfig)
 
 		await this.clientApplication.initialize()
 
@@ -42,7 +33,6 @@ export class AuthProvider {
 	async login() {
 		try {
 			const authResponse = await this.getToken()
-			// @ts-expect-error
 			return this.handleResponse(authResponse)
 		} catch (error) {
 			const message = error instanceof Error ? error.message : error
@@ -52,9 +42,13 @@ export class AuthProvider {
 		}
 	}
 
+	async handleRedirect(hash: string) {
+		const authResponse = await this.clientApplication.handleRedirectPromise(hash)
+		return this.handleResponse(authResponse)
+	}
+
 	async logout() {
-		const cache = this.clientApplication.logoutPopup()
-		this.account = null
+		return this.clientApplication.logoutRedirect()
 	}
 
 	private async getToken() {
@@ -87,21 +81,21 @@ export class AuthProvider {
 				console.log('Silent token acquisition failed, acquiring token interactive')
 				return await this.getTokenInteractive(tokenRequest)
 			}
-			console.log(error)
+			console.error(error)
 			throw error
 		}
 	}
 
-	private async getTokenInteractive(tokenRequest: BaseTokenRequest) {
-		console.log('getTokenInteractive')
-		return this.clientApplication.acquireTokenRedirect(tokenRequest)
+	private async getTokenInteractive(tokenRequest: RedirectRequest) {
+		await this.clientApplication.acquireTokenRedirect(tokenRequest)
+		return null
 	}
 
 	/**
 	 * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
 	 * @param response
 	 */
-	private async handleResponse(response: AuthenticationResult) {
+	private async handleResponse(response: AuthenticationResult | null) {
 		this.account = response?.account || (await this.getAccount())
 		return this.account
 	}

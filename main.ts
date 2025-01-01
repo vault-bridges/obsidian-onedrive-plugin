@@ -76,7 +76,7 @@ export default class OneDrivePlugin extends Plugin {
 		})
 
 		this.registerObsidianProtocolHandler('onedrive', (path) => {
-			this.authProvider.clientApplication.handleRedirectPromise(path.hash)
+			this.authProvider.handleRedirect(path.hash)
 		})
 	}
 

@@ -1,4 +1,4 @@
-import { type Configuration, LogLevel } from '@azure/msal-browser'
+import { BrowserCacheLocation, type Configuration, LogLevel } from '@azure/msal-browser'
 
 export const msalConfig: Configuration = {
 	auth: {
@@ -13,5 +13,8 @@ export const msalConfig: Configuration = {
 			piiLoggingEnabled: false,
 			logLevel: LogLevel.Warning,
 		},
+	},
+	cache: {
+		cacheLocation: BrowserCacheLocation.LocalStorage,
 	},
 }
