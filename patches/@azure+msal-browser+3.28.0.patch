@@ -1,0 +1,29 @@
+diff --git a/node_modules/@azure/msal-browser/dist/network/FetchClient.mjs b/node_modules/@azure/msal-browser/dist/network/FetchClient.mjs
+index bcc88be..6ce3c0a 100644
+--- a/node_modules/@azure/msal-browser/dist/network/FetchClient.mjs
++++ b/node_modules/@azure/msal-browser/dist/network/FetchClient.mjs
+@@ -61,7 +61,8 @@ class FetchClient {
+         let responseStatus = 0;
+         let responseHeaders = {};
+         try {
+-            response = await fetch(url, {
++            response = await requestUrl({
++				url,
+                 method: HTTP_REQUEST_TYPE.POST,
+                 headers: reqHeaders,
+                 body: reqBody,
+@@ -72,12 +73,12 @@ class FetchClient {
+                 ? postRequestFailed
+                 : noNetworkConnectivity);
+         }
+-        responseHeaders = getHeaderDict(response.headers);
++        responseHeaders = response.headers;
+         try {
+             responseStatus = response.status;
+             return {
+                 headers: responseHeaders,
+-                body: (await response.json()),
++                body: response.json,
+                 status: responseStatus,
+             };
+         }
