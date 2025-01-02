@@ -48,7 +48,8 @@ export class AuthProvider {
 	}
 
 	async logout() {
-		return this.clientApplication.logoutRedirect()
+		await this.clientApplication.clearCache()
+		this.account = null
 	}
 
 	private async getToken() {
