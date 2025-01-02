@@ -1,4 +1,3 @@
-// import { shell } from 'electron'
 import { type ButtonComponent, Notice, PluginSettingTab, Setting } from 'obsidian'
 import type OneDrivePlugin from '../main'
 
@@ -85,7 +84,7 @@ export class OneDriveSettingTab extends PluginSettingTab {
 				.setDisabled(false)
 				.onClick(async () => {
 					if (file.webUrl) {
-						// await shell.openExternal(file.webUrl)
+						window.open(file.webUrl, '_blank')
 					}
 				})
 		} else {

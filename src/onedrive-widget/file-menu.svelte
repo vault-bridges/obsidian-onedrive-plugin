@@ -1,8 +1,7 @@
 <script lang="ts">
 import type { DriveItem } from '@microsoft/microsoft-graph-types'
-// import { clipboard, shell } from 'electron'
 import { File } from 'lucide-svelte'
-import { Menu, Notice } from 'obsidian'
+import { Menu, Notice, Platform } from 'obsidian'
 import { getContext } from 'svelte'
 import type OneDrivePlugin from '../../main'
 import { FileInfoModal } from './file-info-modal'
@@ -47,14 +46,12 @@ async function open() {
 		await plugin.app.vault.createBinary(filePath, arrayBuffer)
 	}
 
-	// await shell
-	// 	.openPath(`${plugin.vaultPath}/${filePath}`)
-	// 	.catch((error) => new Notice(error.message))
+	window.open(`file://${plugin.vaultPath}/${filePath}`, '_blank')
 }
 
-async function openInOneDrive() {
+function openInOneDrive() {
 	if (fileInfo.webUrl) {
-		// await shell.openExternal(fileInfo.webUrl)
+		window.open(fileInfo.webUrl, '_blank')
 	} else {
 		new Notice('File url not found')
 	}
@@ -62,7 +59,8 @@ async function openInOneDrive() {
 
 async function copyOneDriveUrl() {
 	if (fileInfo.webUrl) {
-		// clipboard.writeText(fileInfo.webUrl)
+		const { clipboard } = await import('electron')
+		clipboard.writeText(fileInfo.webUrl)
 		new Notice('Copied to clipboard')
 	} else {
 		new Notice('File url not found')
@@ -79,9 +77,11 @@ async function showFileInfo() {
 
 function showMenu(event: MouseEvent) {
 	const menu = new Menu()
-	// menu.addItem((item) => item.setTitle('Open in OneDrive').onClick(openInOneDrive))
-	// menu.addItem((item) => item.setTitle('Copy OneDrive URL').onClick(copyOneDriveUrl))
-	// menu.addItem((item) => item.setTitle('Open').onClick(open))
+	menu.addItem((item) => item.setTitle('Open in OneDrive').onClick(openInOneDrive))
+	if (Platform.isDesktopApp) {
+		menu.addItem((item) => item.setTitle('Copy OneDrive URL').onClick(copyOneDriveUrl))
+	}
+	menu.addItem((item) => item.setTitle('Open').onClick(open))
 	menu.addItem((item) => item.setTitle('Save as...').onClick(download))
 	menu.addItem((item) => item.setTitle('File info').onClick(showFileInfo))
 	const target = event.target
