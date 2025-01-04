@@ -1,5 +1,5 @@
 import type { AccountInfo } from '@azure/msal-common'
-import { FileSystemAdapter, Notice, Plugin } from 'obsidian'
+import { type App, Notice, Plugin, type PluginManifest } from 'obsidian'
 import { mount } from 'svelte'
 import { AuthProvider } from './src/auth-provider'
 import { GraphClient } from './src/graph-client'
@@ -22,24 +22,20 @@ const DEFAULT_SETTINGS: OneDrivePluginSettings = {
 type Callback = (value: typeof DEFAULT_SETTINGS) => void
 
 export default class OneDrivePlugin extends Plugin {
-	account!: AccountInfo | null
+	account: AccountInfo | null = null
 	settings!: OneDrivePluginSettings
-	authProvider!: AuthProvider
+	authProvider: AuthProvider
 	client!: GraphClient
-	vaultPath!: string
-	pluginPath!: string
+	pluginPath: string
 	callbacks: Callback[] = []
 
-	async onload() {
-		if (this.app.vault.adapter instanceof FileSystemAdapter) {
-			this.vaultPath = this.app.vault.adapter.getBasePath()
-			this.pluginPath = [
-				this.app.vault.configDir,
-				'plugins',
-				this.app.vault.adapter.getName(),
-			].join('/')
-		}
+	constructor(app: App, manifest: PluginManifest) {
+		super(app, manifest)
+		this.pluginPath = manifest.dir ?? ''
 		this.authProvider = new AuthProvider()
+	}
+
+	async onload() {
 		await this.loadSettings()
 		this.account = await this.authProvider.init()
 		this.client = new GraphClient(this.authProvider)

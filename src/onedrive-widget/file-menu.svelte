@@ -46,12 +46,13 @@ async function open() {
 		await plugin.app.vault.createBinary(filePath, arrayBuffer)
 	}
 
-	window.open(`file://${plugin.vaultPath}/${filePath}`, '_blank')
+	// @ts-expect-error
+	window.app.openWithDefaultApp(filePath)
 }
 
 function openInOneDrive() {
 	if (fileInfo.webUrl) {
-		window.open(fileInfo.webUrl, '_blank')
+		window.open(fileInfo.webUrl, '_blank', 'noopener, noreferrer')
 	} else {
 		new Notice('File url not found')
 	}
@@ -59,8 +60,7 @@ function openInOneDrive() {
 
 async function copyOneDriveUrl() {
 	if (fileInfo.webUrl) {
-		const { clipboard } = await import('electron')
-		clipboard.writeText(fileInfo.webUrl)
+		await window.navigator.clipboard.writeText(fileInfo.webUrl)
 		new Notice('Copied to clipboard')
 	} else {
 		new Notice('File url not found')
@@ -78,11 +78,11 @@ async function showFileInfo() {
 function showMenu(event: MouseEvent) {
 	const menu = new Menu()
 	menu.addItem((item) => item.setTitle('Open in OneDrive').onClick(openInOneDrive))
-	if (Platform.isDesktopApp) {
-		menu.addItem((item) => item.setTitle('Copy OneDrive URL').onClick(copyOneDriveUrl))
-	}
+	menu.addItem((item) => item.setTitle('Copy OneDrive URL').onClick(copyOneDriveUrl))
 	menu.addItem((item) => item.setTitle('Open').onClick(open))
-	menu.addItem((item) => item.setTitle('Save as...').onClick(download))
+	if (Platform.isDesktop) {
+		menu.addItem((item) => item.setTitle('Save as...').onClick(download))
+	}
 	menu.addItem((item) => item.setTitle('File info').onClick(showFileInfo))
 	const target = event.target
 	if (target instanceof HTMLElement) {
