@@ -59,6 +59,7 @@ export class GraphClient {
 		const client = await this.getClient()
 
 		const progress = (range?: Range, extraCallbackParam?: unknown) => {
+			// biome-ignore lint/suspicious/noConsole: todo: implement progress bar
 			console.log(range, extraCallbackParam)
 		}
 

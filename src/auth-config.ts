@@ -8,7 +8,20 @@ export const msalConfig: Configuration = {
 	system: {
 		loggerOptions: {
 			loggerCallback(loglevel, message) {
-				console.log(message)
+				switch (loglevel) {
+					case LogLevel.Error:
+						return console.error(message)
+					case LogLevel.Warning:
+						return console.warn(message)
+					case LogLevel.Info:
+						return console.info(message)
+					case LogLevel.Verbose:
+						return console.debug(message)
+					case LogLevel.Trace:
+						return console.trace(message)
+					default:
+						console.error(`Unknown log level: "${loglevel}", message:`, message)
+				}
 			},
 			piiLoggingEnabled: false,
 			logLevel: LogLevel.Warning,

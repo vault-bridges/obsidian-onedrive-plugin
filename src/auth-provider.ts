@@ -79,7 +79,7 @@ export class AuthProvider {
 			return await this.clientApplication.acquireTokenSilent(tokenRequest)
 		} catch (error) {
 			if (error instanceof InteractionRequiredAuthError) {
-				console.log('Silent token acquisition failed, acquiring token interactive')
+				console.info('Silent token acquisition failed, acquiring token interactive')
 				return await this.getTokenInteractive(tokenRequest)
 			}
 			console.error(error)
@@ -109,13 +109,13 @@ export class AuthProvider {
 		const currentAccounts = this.clientApplication.getAllAccounts()
 
 		if (!currentAccounts) {
-			console.log('No accounts detected')
+			console.info('No accounts detected')
 			return null
 		}
 
 		if (currentAccounts.length > 1) {
 			// Add choose account code here
-			console.log('Multiple accounts detected, need to add choose account code.')
+			console.warn('Multiple accounts detected, need to add choose account code.')
 			return currentAccounts[0]
 		}
 		if (currentAccounts.length === 1) {
