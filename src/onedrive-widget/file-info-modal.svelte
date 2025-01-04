@@ -1,6 +1,6 @@
 <script  lang="ts">
 import type { DriveItem } from '@microsoft/microsoft-graph-types'
-import moment from 'moment'
+import { moment } from 'obsidian'
 
 type Props = {
 	fileInfo: DriveItem
