@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { DriveItem } from '@microsoft/microsoft-graph-types'
 import { File } from 'lucide-svelte'
-import { Menu, Notice, Platform } from 'obsidian'
+import { Menu, Notice, Platform, normalizePath } from 'obsidian'
 import { getContext } from 'svelte'
 import type OneDrivePlugin from '../../main'
 import { FileInfoModal } from './file-info-modal'
@@ -34,16 +34,16 @@ async function open() {
 	if (!url || !name) return
 
 	const dirPath = `${plugin.pluginPath}/.cache`
-	const filePath = `${dirPath}/${name}`
+	const filePath = normalizePath(`${dirPath}/${name}`)
 
 	if (!(await plugin.app.vault.adapter.exists(dirPath))) {
-		await plugin.app.vault.createFolder(dirPath)
+		await plugin.app.vault.adapter.mkdir(dirPath)
 	}
 
 	if (!(await plugin.app.vault.adapter.exists(filePath))) {
 		const response = await fetch(url)
 		const arrayBuffer = await response.arrayBuffer()
-		await plugin.app.vault.createBinary(filePath, arrayBuffer)
+		await plugin.app.vault.adapter.writeBinary(filePath, arrayBuffer)
 	}
 
 	// @ts-expect-error
