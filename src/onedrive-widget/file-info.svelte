@@ -1,28 +1,25 @@
 <script lang="ts">
-import { createQuery } from '@tanstack/svelte-query'
-import { LoaderCircle } from 'lucide-svelte'
+import type { DriveItem } from '@microsoft/microsoft-graph-types'
+import type { CreateQueryResult } from '@tanstack/svelte-query'
+import { Ban, LoaderCircle } from 'lucide-svelte'
 import { getContext } from 'svelte'
 import type OneDrivePlugin from '../../main'
+import { humanFileSize } from '../file-info-utils'
 import FileMenu from './file-menu.svelte'
 
 type Props = {
 	fileId: string
 	title: string
+	fileInfo: CreateQueryResult<DriveItem>
 }
 
 const plugin = getContext<OneDrivePlugin>('plugin')
 
-const { fileId, title }: Props = $props()
+const { fileId, title, fileInfo }: Props = $props()
 let showPreview = $state(plugin.settings.showPreview)
 
 plugin.subscribe((value) => {
 	showPreview = value.showPreview
-})
-
-const fileInfo = createQuery({
-	queryKey: ['file', fileId],
-	queryFn: () => plugin.client.getFileInfo(fileId),
-	enabled: !!fileId,
 })
 </script>
 
@@ -30,16 +27,24 @@ const fileInfo = createQuery({
 	<div class="header">
 		{#if $fileInfo.isSuccess}
 			<FileMenu fileInfo={$fileInfo.data} />
-		{:else}
-			<div class="loader-spinner">
+		{:else if ($fileInfo.isLoading || !fileId)}
+			<div class="loader-spinner file-icon">
 				<LoaderCircle class="svg-icon"/>
 			</div>
+		{:else if $fileInfo.isError}
+			<div class="file-icon">
+				<Ban class="svg-icon" />
+			</div>
 		{/if}
-		<h6>{title}</h6>
+		<div>
+			{#if !fileId}Uploading: {/if}
+			{#if $fileInfo.isError}{$fileInfo.error.message}: {/if}
+			<strong>{title}</strong>
+			{#if $fileInfo.isSuccess}
+				<span class="file-size">• {humanFileSize($fileInfo.data.size??0)}</span>
+			{/if}
+		</div>
 	</div>
-	{#if !fileId}Uploading...{/if}
-	{#if $fileInfo.isLoading}Loading...{/if}
-	{#if $fileInfo.isError}{$fileInfo.error.message}{/if}
 	{#if showPreview && $fileInfo.data?.thumbnails}
 		{#each $fileInfo.data.thumbnails as thumbnail}
 			<img src={thumbnail.large?.url} alt="">
@@ -59,13 +64,19 @@ const fileInfo = createQuery({
 		display: flex;
 		column-gap: var(--size-4-1);
 		align-items: center;
-		/*margin-block-end: var(--size-4-2);*/
 	}
-	.loader-spinner {
+	.file-icon {
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		margin: 0;
+		width: 44px;
+		height: 40px;
 		padding: var(--size-2-2) var(--size-2-3);
+		color: var(--interactive-accent);
+	}
+	.file-size {
+		font-size: var(--font-ui-small);
+		color: var(--text-muted);
 	}
 </style>

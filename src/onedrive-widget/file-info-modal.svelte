@@ -1,16 +1,12 @@
 <script  lang="ts">
 import type { DriveItem } from '@microsoft/microsoft-graph-types'
 import { moment } from 'obsidian'
+import { humanFileSize } from '../file-info-utils'
 
 type Props = {
 	fileInfo: DriveItem
 }
 const { fileInfo }: Props = $props()
-
-function humanFileSize(size: number) {
-	const exponent = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024))
-	return `${+(size / 1024 ** exponent).toFixed(2)} ${['B', 'kB', 'MB', 'GB', 'TB'][exponent]}`
-}
 
 const fileSize = fileInfo.size ? humanFileSize(fileInfo.size) : 'Unknown'
 </script>

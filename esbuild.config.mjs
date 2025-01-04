@@ -47,6 +47,9 @@ const context = await esbuild.context({
 			preprocess: sveltePreprocess(),
 		}),
 	],
+	define: {
+		__DEV__: JSON.stringify(!prod),
+	},
 })
 
 if (prod) {

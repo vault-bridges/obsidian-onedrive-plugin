@@ -71,6 +71,19 @@ export default class OneDrivePlugin extends Plugin {
 			mount(OneDriveWidget, { target: el, props: { source }, context: new Map([['plugin', this]]) })
 		})
 
+		if (__DEV__) {
+			this.registerMarkdownCodeBlockProcessor('onedrive-dev', async (source, el) => {
+				const { default: OneDriveWidgetDev } = await import(
+					'./src/onedrive-widget/onedrive-widget-dev.svelte'
+				)
+				mount(OneDriveWidgetDev, {
+					target: el,
+					props: { source },
+					context: new Map([['plugin', this]]),
+				})
+			})
+		}
+
 		this.registerObsidianProtocolHandler('onedrive', (path) => {
 			this.authProvider.handleRedirect(path.hash)
 		})
