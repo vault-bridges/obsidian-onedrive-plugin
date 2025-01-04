@@ -5,6 +5,7 @@ import { AuthProvider } from './src/auth-provider'
 import { GraphClient } from './src/graph-client'
 import { getCodeBlock } from './src/markdown-utils'
 import { OneDriveWidget } from './src/onedrive-widget'
+import { queryClient } from './src/onedrive-widget/query-client'
 import { OneDriveSettingTab } from './src/settings-tab'
 
 export interface OneDrivePluginSettings {
@@ -53,6 +54,7 @@ export default class OneDrivePlugin extends Plugin {
 				editor.replaceRange(placeholder, initialCursor)
 				const driveItem = await this.client.uploadFile(file, this.settings)
 				if (driveItem?.id) {
+					queryClient.setQueryData(['file', driveItem.id], driveItem)
 					new Notice('File uploaded')
 					const record = { id: driveItem.id, title }
 					editor.replaceRange(getCodeBlock(record), initialCursor, {
