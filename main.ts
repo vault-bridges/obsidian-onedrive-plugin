@@ -1,5 +1,5 @@
 import type { AccountInfo } from '@azure/msal-common'
-import { type App, Notice, Plugin, type PluginManifest } from 'obsidian'
+import { type App, type Editor, MarkdownView, Notice, Plugin, type PluginManifest } from 'obsidian'
 import { mount } from 'svelte'
 import { AuthProvider } from './src/auth-provider'
 import { GraphClient } from './src/graph-client'
@@ -46,24 +46,7 @@ export default class OneDrivePlugin extends Plugin {
 			const file = evt.dataTransfer?.files[0]
 			if (file?.type === 'application/pdf') {
 				evt.preventDefault()
-				new Notice('Start upload')
-				const initialCursor = editor.getCursor()
-				const title = file.name.replace(/.[^.]+$/, '') // Remove file extension
-				const placeholder = getCodeBlock({ title })
-				const placeholderLineCount = placeholder.split('\n').length
-				editor.replaceRange(placeholder, initialCursor)
-				const driveItem = await this.client.uploadFile(file, this.settings)
-				if (driveItem?.id) {
-					queryClient.setQueryData(['file', driveItem.id], driveItem)
-					new Notice('File uploaded')
-					const record = { id: driveItem.id, title }
-					editor.replaceRange(getCodeBlock(record), initialCursor, {
-						line: initialCursor.line + placeholderLineCount,
-						ch: 0,
-					})
-				} else {
-					new Notice('File upload failed')
-				}
+				await this.uploadFile(file, editor)
 			}
 		})
 
@@ -89,6 +72,25 @@ export default class OneDrivePlugin extends Plugin {
 		this.registerObsidianProtocolHandler('onedrive', (path) => {
 			this.authProvider.handleRedirect(path.hash)
 		})
+
+		this.addCommand({
+			id: 'upload-file',
+			name: 'Upload file',
+			callback: () => {
+				const input = document.createElement('input')
+				input.type = 'file'
+				input.onchange = (_) => {
+					if (input.files) {
+						const files = Array.from(input.files)
+						const view = this.app.workspace.getActiveViewOfType(MarkdownView)
+						if (view && files.length > 0) {
+							this.uploadFile(files[0], view.editor)
+						}
+					}
+				}
+				input.click()
+			},
+		})
 	}
 
 	onunload() {}
@@ -103,7 +105,29 @@ export default class OneDrivePlugin extends Plugin {
 			callback(this.settings)
 		}
 	}
+
 	subscribe(callback: Callback) {
 		this.callbacks.push(callback)
+	}
+
+	async uploadFile(file: File, editor: Editor) {
+		new Notice('Start upload')
+		const initialCursor = editor.getCursor()
+		const title = file.name.replace(/.[^.]+$/, '') // Remove file extension
+		const placeholder = getCodeBlock({ title })
+		const placeholderLineCount = placeholder.split('\n').length
+		editor.replaceRange(placeholder, initialCursor)
+		const driveItem = await this.client.uploadFile(file, this.settings)
+		if (driveItem?.id) {
+			queryClient.setQueryData(['file', driveItem.id], driveItem)
+			new Notice('File uploaded')
+			const record = { id: driveItem.id, title }
+			editor.replaceRange(getCodeBlock(record), initialCursor, {
+				line: initialCursor.line + placeholderLineCount,
+				ch: 0,
+			})
+		} else {
+			new Notice('File upload failed')
+		}
 	}
 }

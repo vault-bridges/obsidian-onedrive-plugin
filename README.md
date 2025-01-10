@@ -6,7 +6,7 @@ It solves the problem of needing a place to store and manage files outside your 
 
 ## Motivation
 
-Obsidian is a powerful tool for managing text files, especially because of its linking feature, 
+Obsidian is a powerful tool for managing text files, especially because of its linking feature,
 making them more organized.
 While Obsidian also supports other file formats, such as images and PDFs,
 storing all these files within your vault can significantly increase its size.
@@ -21,13 +21,17 @@ while keeping the files intact and easy to use.
 
 - **Drag-and-Drop Upload**: Upload files to OneDrive by drag-and-dropping them into the Obsidian editor.
 
-- **Dynamic File Widgets**: After uploading, files are displayed as widgets with a title derived from the filename. Users can change the title by editing the widget's code block.
+- **Upload Command**: Upload files through the command palette.
+
+- **Dynamic File Widgets**: After uploading, files are displayed as widgets with a title derived from the filename.
+  Users can change the title by editing the widget's code block.
 
 - **Interactive File Menu**: The file icon within the widget is clickable and brings up a menu with several options:
 	- Open the file online in OneDrive
 	- Open the file locally in the default application
 	- Download the file to a chosen directory
-	- Display a modal with detailed file information, including filename, size, type, OneDrive path, and creation/update dates
+	- Display a modal with detailed file information, including filename, size, type, OneDrive path, and creation/update
+	  dates
 
 ## Installation
 
