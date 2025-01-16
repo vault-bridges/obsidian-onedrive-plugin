@@ -20,6 +20,13 @@ function createIDBPersister(idbValidKey: IDBValidKey = 'obsidian-onedrive-plugin
 	} satisfies Persister
 }
 
-export const queryClient = new QueryClient()
+export const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			// biome-ignore lint/style/useNumberNamespace: should be the same as maxAge persist option
+			gcTime: Infinity,
+		},
+	},
+})
 
 export const persister = createIDBPersister()

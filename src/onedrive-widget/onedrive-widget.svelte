@@ -9,6 +9,6 @@ const { source } = $props()
 const { id, title } = extractKeyValuePairs(source)
 </script>
 
-<PersistQueryClientProvider client={queryClient} persistOptions={{persister}}>
+<PersistQueryClientProvider client={queryClient} persistOptions={{ persister, maxAge: Infinity }}>
 	<FileInfoWrapper fileId={id} title={title} />
 </PersistQueryClientProvider>
