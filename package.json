@@ -22,17 +22,17 @@
 		"esbuild-svelte": "^0.9.0",
 		"obsidian": "latest",
 		"patch-package": "^8.0.0",
-		"svelte": "^5.16.0",
+		"svelte": "^5.19.0",
 		"svelte-preprocess": "^6.0.3",
-		"typescript": "5.7.2"
+		"typescript": "5.7.3"
 	},
 	"dependencies": {
 		"@azure/msal-browser": "^3.28.0",
 		"@microsoft/microsoft-graph-client": "^3.0.7",
-		"@tanstack/query-async-storage-persister": "^5.62.9",
-		"@tanstack/svelte-query": "^5.62.9",
-		"@tanstack/svelte-query-persist-client": "^5.62.9",
+		"@tanstack/query-async-storage-persister": "^5.64.1",
+		"@tanstack/svelte-query": "^5.64.1",
+		"@tanstack/svelte-query-persist-client": "^5.64.1",
 		"idb-keyval": "^6.2.1",
-		"lucide-svelte": "^0.469.0"
+		"lucide-svelte": "^0.473.0"
 	}
 }
