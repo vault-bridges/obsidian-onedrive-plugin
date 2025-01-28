@@ -29,11 +29,13 @@ export default class OneDrivePlugin extends Plugin {
 	client!: GraphClient
 	pluginPath: string
 	callbacks: Callback[] = []
+	settingsTab: OneDriveSettingTab
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest)
 		this.pluginPath = manifest.dir ?? ''
 		this.authProvider = new AuthProvider()
+		this.settingsTab = new OneDriveSettingTab(this)
 	}
 
 	async onload() {
@@ -50,7 +52,7 @@ export default class OneDrivePlugin extends Plugin {
 			}
 		})
 
-		this.addSettingTab(new OneDriveSettingTab(this))
+		this.addSettingTab(this.settingsTab)
 
 		this.registerMarkdownCodeBlockProcessor('onedrive', (source, el) => {
 			mount(OneDriveWidget, { target: el, props: { source }, context: new Map([['plugin', this]]) })
@@ -69,8 +71,9 @@ export default class OneDrivePlugin extends Plugin {
 			})
 		}
 
-		this.registerObsidianProtocolHandler('onedrive', (path) => {
-			this.authProvider.handleRedirect(path.hash)
+		this.registerObsidianProtocolHandler('onedrive', async (path) => {
+			this.account = await this.authProvider.handleRedirect(path.hash)
+			this.settingsTab.display()
 		})
 
 		this.addCommand({
