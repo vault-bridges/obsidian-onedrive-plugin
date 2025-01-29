@@ -1,8 +1,8 @@
 diff --git a/node_modules/@azure/msal-browser/dist/network/FetchClient.mjs b/node_modules/@azure/msal-browser/dist/network/FetchClient.mjs
-index bcc88be..6ce3c0a 100644
+index bcc88be..9595e09 100644
 --- a/node_modules/@azure/msal-browser/dist/network/FetchClient.mjs
 +++ b/node_modules/@azure/msal-browser/dist/network/FetchClient.mjs
-@@ -61,7 +61,8 @@ class FetchClient {
+@@ -61,23 +61,25 @@ class FetchClient {
          let responseStatus = 0;
          let responseHeaders = {};
          try {
@@ -12,7 +12,11 @@ index bcc88be..6ce3c0a 100644
                  method: HTTP_REQUEST_TYPE.POST,
                  headers: reqHeaders,
                  body: reqBody,
-@@ -72,12 +73,12 @@ class FetchClient {
+             });
+         }
+         catch (e) {
++			console.error(e)
+             throw createBrowserAuthError(window.navigator.onLine
                  ? postRequestFailed
                  : noNetworkConnectivity);
          }
