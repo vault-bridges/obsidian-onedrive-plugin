@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-onedrive-plugin",
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"description": "Upload large files to OneDrive with seamless Obsidian integration.",
 	"main": "main.js",
 	"scripts": {
