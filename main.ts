@@ -94,6 +94,30 @@ export default class OneDrivePlugin extends Plugin {
 				input.click()
 			},
 		})
+
+		this.addCommand({
+			id: 'upload-current-note-files',
+			name: 'Upload files from the current note',
+			editorCallback: async (editor, ctx) => {
+				if (ctx instanceof MarkdownView) {
+					const content = editor.getValue()
+					const fileRegex = /\[\[([^\]]+)]]/g
+					const matches = Array.from(content.matchAll(fileRegex))
+					const fileLinks = matches.map((match) => match[1].split('|')[0])
+
+					for (const fileLink of fileLinks) {
+						const file = this.app.vault.getFileByPath(fileLink)
+						if (file) {
+							const fileBinary = await this.app.vault.readBinary(file)
+							const fileObj = new File([fileBinary], file.name)
+							await this.uploadFile(fileObj, editor)
+						} else {
+							console.error(`File not found: ${fileLink}`)
+						}
+					}
+				}
+			},
+		})
 	}
 
 	onunload() {}
