@@ -1,5 +1,6 @@
 import type { AccountInfo } from '@azure/msal-common'
-import { type App, type Editor, Notice, Plugin, type PluginManifest, type TFile } from 'obsidian'
+import mime from 'mime'
+import { type App, type Editor, Notice, Plugin, type PluginManifest } from 'obsidian'
 import { type Component, mount } from 'svelte'
 import { AuthProvider } from './auth-provider'
 import { GraphClient } from './graph-client'
@@ -7,7 +8,6 @@ import { getCodeBlock } from './markdown-utils'
 import { OneDriveWidget } from './onedrive-widget'
 import { queryClient } from './onedrive-widget/query-client'
 import { OneDriveSettingTab } from './settings-tab'
-import mime from 'mime'
 
 export interface OneDrivePluginSettings {
 	oneDriveDirectory: string
@@ -126,7 +126,8 @@ export class OneDrivePlugin extends Plugin {
 		const nonMarkdownFiles = this.app.vault.getFiles().filter((file) => file.extension !== 'md')
 
 		for (const { fileName, displayTitle } of fileLinks) {
-			const vaultFile = this.findFileInVault(fileName, nonMarkdownFiles)
+			if (!fileName.includes('.')) continue // Skip links to notes
+			const vaultFile = nonMarkdownFiles.find((file) => file.path.includes(fileName))
 			if (!vaultFile) continue
 
 			try {
@@ -149,19 +150,6 @@ export class OneDrivePlugin extends Plugin {
 			const [fileName, displayTitle] = match[1].split('|')
 			return { fileName, displayTitle }
 		})
-	}
-
-	findFileInVault(fileName: string, vaultFiles: TFile[]) {
-		const files = vaultFiles.filter((file) => file.name === fileName)
-		if (files.length === 0) {
-			console.error(`File not found: ${fileName}`)
-			return null
-		}
-		if (files.length > 1) {
-			console.error(`Multiple files found with name ${fileName}. Not supported.`)
-			return null
-		}
-		return files[0]
 	}
 
 	registerCommands() {
