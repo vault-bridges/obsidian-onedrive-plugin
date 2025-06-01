@@ -118,12 +118,19 @@ export default class OneDrivePlugin extends Plugin {
 	}
 
 	async handleUploadCurrentNoteFilesCommand(editor: Editor) {
+		const vaultFiles = this.app.vault.getFiles()
+		const nonMDVaultFiles = vaultFiles.filter((file) => file.extension !== 'md')
 		const content = editor.getValue()
 		const fileRegex = /\[\[([^\]]+)]]/g
 		const matches = Array.from(content.matchAll(fileRegex))
 		const fileLinks = matches.map((match) => match[1].split('|'))
 		for (const [fileLink, title] of fileLinks) {
-			const file = this.app.vault.getFileByPath(fileLink)
+			const vaultFile = nonMDVaultFiles.find((vaultFile) => vaultFile.name === fileLink)
+			if (!vaultFile) {
+				console.error(`File not found: ${fileLink}`)
+				continue
+			}
+			const file = this.app.vault.getFileByPath(vaultFile?.path)
 			if (file) {
 				const fileBinary = await this.app.vault.readBinary(file)
 				const fileObj = new File([fileBinary], file.name)
