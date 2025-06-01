@@ -84,11 +84,8 @@ export default class OneDrivePlugin extends Plugin {
 	}
 
 	mountSvelteComponent(component: Component<{ source: string }>, el: HTMLElement, source: string) {
-		mount(component, {
-			target: el,
-			props: { source },
-			context: new Map([['plugin', this]]),
-		})
+		const context = new Map([['plugin', this]])
+		mount(component, { target: el, props: { source }, context })
 	}
 
 	registerMarkdownProcessors() {
