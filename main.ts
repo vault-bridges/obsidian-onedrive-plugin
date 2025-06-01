@@ -121,13 +121,13 @@ export default class OneDrivePlugin extends Plugin {
 		const content = editor.getValue()
 		const fileRegex = /\[\[([^\]]+)]]/g
 		const matches = Array.from(content.matchAll(fileRegex))
-		const fileLinks = matches.map((match) => match[1].split('|')[0])
-		for (const fileLink of fileLinks) {
+		const fileLinks = matches.map((match) => match[1].split('|'))
+		for (const [fileLink, title] of fileLinks) {
 			const file = this.app.vault.getFileByPath(fileLink)
 			if (file) {
 				const fileBinary = await this.app.vault.readBinary(file)
 				const fileObj = new File([fileBinary], file.name)
-				await this.uploadFile(fileObj, editor)
+				await this.uploadFile(fileObj, editor, title)
 			} else {
 				console.error(`File not found: ${fileLink}`)
 			}
@@ -159,9 +159,9 @@ export default class OneDrivePlugin extends Plugin {
 		this.callbacks.push(callback)
 	}
 
-	async uploadFile(file: File, editor: Editor) {
+	async uploadFile(file: File, editor: Editor, defaultTitle?: string) {
 		new Notice('Start upload')
-		const title = file.name.replace(/.[^.]+$/, '') // Remove file extension
+		const title = defaultTitle ?? file.name.replace(/.[^.]+$/, '') // Remove file extension
 		const placeholderLineCount = this.insertCodeBlock(editor, { title })
 		const driveItem = await this.client.uploadFile(file, this.settings)
 		if (driveItem?.id) {
