@@ -102,14 +102,15 @@ export default class OneDrivePlugin extends Plugin {
 		}
 	}
 
-	async handleUploadFileCommand(editor: Editor) {
+	handleUploadFileCommand(editor: Editor) {
 		const input = document.createElement('input')
 		input.type = 'file'
-		input.onchange = (_) => {
+		input.accept = 'image/*,video/*,audio/*,application/*'
+		input.multiple = true
+		input.onchange = async (_) => {
 			if (!input.files) return
-			const files = Array.from(input.files)
-			if (files.length > 0) {
-				this.uploadFile(files[0], editor)
+			for (const file of Array.from(input.files)) {
+				await this.uploadFile(file, editor)
 			}
 		}
 		input.click()
