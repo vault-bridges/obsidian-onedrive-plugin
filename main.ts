@@ -212,14 +212,13 @@ export default class OneDrivePlugin extends Plugin {
 	 * Update the code block with new data, moves cursor to the end of the code block
 	 */
 	updateCodeBlock(editor: Editor, data: Record<string, string>, placeholderLineCount: number) {
-		const initialCursor = editor.getCursor()
+		const cursorPosition = editor.getCursor()
 		const codeBlock = getCodeBlock(data)
 		const codeBlockLineCount = codeBlock.split('\n').length
-		editor.replaceRange(codeBlock, initialCursor, {
-			line: initialCursor.line + placeholderLineCount,
-			ch: 0,
-		})
-		editor.setCursor({ line: initialCursor.line + codeBlockLineCount, ch: 0 })
+		const placeholderEndPosition = { line: cursorPosition.line + placeholderLineCount - 1, ch: 0 }
+		const codeBlockEndPos = { line: cursorPosition.line + codeBlockLineCount - 1, ch: 0 }
+		editor.replaceRange(codeBlock, cursorPosition, placeholderEndPosition)
+		editor.setCursor(codeBlockEndPos)
 	}
 
 	notice(message: string) {
