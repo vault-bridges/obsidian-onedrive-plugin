@@ -25,6 +25,7 @@ export class OneDriveSettingTab extends PluginSettingTab {
 		this.renderAccountSetting(containerEl)
 		this.renderDirectorySetting(containerEl)
 		this.renderConflictSetting(containerEl)
+		this.renderSupportedFilesSetting(containerEl)
 		new Setting(this.containerEl).setName('Rendering').setHeading()
 		this.renderRenderingSetting(containerEl)
 	}
@@ -111,6 +112,17 @@ export class OneDriveSettingTab extends PluginSettingTab {
 						this.plugin.settings.conflictBehavior = value as 'fail' | 'rename' | 'replace'
 						await this.plugin.saveSettings()
 					}),
+			)
+	}
+
+	private renderSupportedFilesSetting(containerEl: HTMLElement) {
+		new Setting(containerEl)
+			.setName('Supported files')
+			.setDesc('Comma separated list of MIME types to upload')
+			.addText((text) =>
+				text.setValue(this.plugin.settings.supportedFiles).onChange(async (value) => {
+					this.plugin.settings.supportedFiles = value
+				}),
 			)
 	}
 

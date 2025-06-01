@@ -12,12 +12,14 @@ export interface OneDrivePluginSettings {
 	oneDriveDirectory: string
 	showPreview: boolean
 	conflictBehavior: 'rename' | 'fail' | 'replace'
+	supportedFiles: string
 }
 
 const DEFAULT_SETTINGS: OneDrivePluginSettings = {
 	oneDriveDirectory: 'Obsidian',
 	showPreview: false,
 	conflictBehavior: 'fail',
+	supportedFiles: 'image/*,video/*,audio/*,application/*',
 }
 
 type Callback = (value: typeof DEFAULT_SETTINGS) => void
@@ -71,10 +73,9 @@ export default class OneDrivePlugin extends Plugin {
 			if (event.defaultPrevented) return
 			if (!event.dataTransfer) return
 			for (const file of Array.from(event.dataTransfer.files)) {
-				if (file?.type === 'application/pdf') {
-					event.preventDefault()
-					await this.uploadFile(file, editor)
-				}
+				if (!this.isFileSupported(file)) continue
+				event.preventDefault()
+				await this.uploadFile(file, editor)
 			}
 		})
 	}
@@ -110,6 +111,7 @@ export default class OneDrivePlugin extends Plugin {
 		input.onchange = async (_) => {
 			if (!input.files) return
 			for (const file of Array.from(input.files)) {
+				if (!this.isFileSupported(file)) continue
 				await this.uploadFile(file, editor)
 			}
 		}
@@ -130,11 +132,12 @@ export default class OneDrivePlugin extends Plugin {
 				console.error(`File not found: ${fileLink}`)
 				continue
 			}
-			const file = this.app.vault.getFileByPath(vaultFile?.path)
-			if (file) {
-				const fileBinary = await this.app.vault.readBinary(file)
-				const fileObj = new File([fileBinary], file.name)
-				await this.uploadFile(fileObj, editor, title)
+			const vaultFileObject = this.app.vault.getFileByPath(vaultFile?.path)
+			if (vaultFileObject) {
+				const fileBinary = await this.app.vault.readBinary(vaultFileObject)
+				const file = new File([fileBinary], vaultFileObject.name)
+				if (!this.isFileSupported(file)) continue
+				await this.uploadFile(file, editor, title)
 			} else {
 				console.error(`File not found: ${fileLink}`)
 			}
@@ -164,6 +167,21 @@ export default class OneDrivePlugin extends Plugin {
 
 	subscribe(callback: Callback) {
 		this.callbacks.push(callback)
+	}
+
+	isFileSupported(file: File) {
+		const supportedFileList = this.settings.supportedFiles.split(',')
+		if (supportedFileList.length === 0) {
+			new Notice('No supported files specified in settings')
+			return false
+		}
+		const isFileSupported = supportedFileList.some((fileType) =>
+			new RegExp(fileType).test(file.type),
+		)
+		if (!isFileSupported) {
+			new Notice(`File type not supported: ${file.type}`)
+		}
+		return isFileSupported
 	}
 
 	async uploadFile(file: File, editor: Editor, defaultTitle?: string) {
