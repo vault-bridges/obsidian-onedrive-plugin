@@ -160,16 +160,16 @@ export default class OneDrivePlugin extends Plugin {
 	}
 
 	async uploadFile(file: File, editor: Editor, defaultTitle?: string) {
-		new Notice('Start upload')
+		new Notice(`Start upload file: ${file.name}`)
 		const title = defaultTitle ?? file.name.replace(/.[^.]+$/, '') // Remove file extension
 		const placeholderLineCount = this.insertCodeBlock(editor, { title })
 		const driveItem = await this.client.uploadFile(file, this.settings)
 		if (driveItem?.id) {
 			queryClient.setQueryData(['file', driveItem.id], driveItem)
-			new Notice('File uploaded')
+			new Notice(`File uploaded: ${file.name}`)
 			this.updateCodeBlock(editor, { id: driveItem.id, title }, placeholderLineCount)
 		} else {
-			new Notice('File upload failed')
+			new Notice(`File upload failed: ${file.name}`)
 		}
 	}
 
