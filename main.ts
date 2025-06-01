@@ -120,28 +120,36 @@ export default class OneDrivePlugin extends Plugin {
 	}
 
 	async handleUploadCurrentNoteFilesCommand(editor: Editor) {
-		const vaultFiles = this.app.vault.getFiles()
-		const nonMDVaultFiles = vaultFiles.filter((file) => file.extension !== 'md')
 		const content = editor.getValue()
-		const fileRegex = /\[\[([^\]]+)]]/g
-		const matches = Array.from(content.matchAll(fileRegex))
-		const fileLinks = matches.map((match) => match[1].split('|'))
-		for (const [fileLink, title] of fileLinks) {
-			const vaultFile = nonMDVaultFiles.find((vaultFile) => vaultFile.name === fileLink)
+		const fileLinks = this.extractFileLinksFromContent(content)
+		const nonMarkdownFiles = this.app.vault.getFiles().filter((file) => file.extension !== 'md')
+
+		for (const { fileName, displayTitle } of fileLinks) {
+			const vaultFile = nonMarkdownFiles.find((file) => file.name === fileName)
 			if (!vaultFile) {
-				console.error(`File not found: ${fileLink}`)
+				console.error(`File not found: ${fileName}`)
 				continue
 			}
-			const vaultFileObject = this.app.vault.getFileByPath(vaultFile?.path)
-			if (vaultFileObject) {
-				const fileBinary = await this.app.vault.readBinary(vaultFileObject)
-				const file = new File([fileBinary], vaultFileObject.name)
+
+			try {
+				const fileContent = await this.app.vault.readBinary(vaultFile)
+				const file = new File([fileContent], vaultFile.name)
 				if (!this.isFileSupported(file)) continue
-				await this.uploadFile(file, editor, title)
-			} else {
-				console.error(`File not found: ${fileLink}`)
+				await this.uploadFile(file, editor, displayTitle)
+			} catch (error) {
+				console.error(`Error processing file ${fileName}:`, error)
 			}
 		}
+	}
+
+	extractFileLinksFromContent(content: string) {
+		const fileRegex = /\[\[([^\]]+)]]/g
+		const matches = Array.from(content.matchAll(fileRegex))
+
+		return matches.map((match) => {
+			const [fileName, displayTitle] = match[1].split('|')
+			return { fileName, displayTitle }
+		})
 	}
 
 	registerCommands() {
