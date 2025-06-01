@@ -7,6 +7,7 @@ import { getCodeBlock } from './src/markdown-utils'
 import { OneDriveWidget } from './src/onedrive-widget'
 import { queryClient } from './src/onedrive-widget/query-client'
 import { OneDriveSettingTab } from './src/settings-tab'
+import mime from 'mime'
 
 export interface OneDrivePluginSettings {
 	oneDriveDirectory: string
@@ -130,7 +131,8 @@ export default class OneDrivePlugin extends Plugin {
 
 			try {
 				const fileBinary = await this.app.vault.readBinary(vaultFile)
-				const file = new File([fileBinary], vaultFile.name)
+				const type = mime.getType(fileName) ?? 'application/octet-stream'
+				const file = new File([fileBinary], vaultFile.name, { type })
 				if (!this.isFileSupported(file)) continue
 				await this.uploadFile(file, editor, displayTitle)
 			} catch (error) {

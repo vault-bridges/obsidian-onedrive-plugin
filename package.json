@@ -33,6 +33,7 @@
 		"@tanstack/svelte-query": "^5.64.1",
 		"@tanstack/svelte-query-persist-client": "^5.64.1",
 		"idb-keyval": "^6.2.1",
-		"lucide-svelte": "^0.473.0"
+		"lucide-svelte": "^0.473.0",
+		"mime": "^4.0.7"
 	}
 }
