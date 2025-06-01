@@ -172,29 +172,29 @@ export default class OneDrivePlugin extends Plugin {
 	isFileSupported(file: File) {
 		const supportedFileList = this.settings.supportedFiles.split(',')
 		if (supportedFileList.length === 0) {
-			new Notice('No supported files specified in settings')
+			this.notice('No supported files specified in settings')
 			return false
 		}
 		const isFileSupported = supportedFileList.some((fileType) =>
 			new RegExp(fileType).test(file.type),
 		)
 		if (!isFileSupported) {
-			new Notice(`File type not supported: ${file.type}`)
+			this.notice(`File type not supported: ${file.type}`)
 		}
 		return isFileSupported
 	}
 
 	async uploadFile(file: File, editor: Editor, defaultTitle?: string) {
-		new Notice(`Start upload file: ${file.name}`)
+		this.notice(`Start upload file: ${file.name}`)
 		const title = defaultTitle ?? file.name.replace(/.[^.]+$/, '') // Remove file extension
 		const placeholderLineCount = this.insertCodeBlock(editor, { title })
 		const driveItem = await this.client.uploadFile(file, this.settings)
 		if (driveItem?.id) {
 			queryClient.setQueryData(['file', driveItem.id], driveItem)
-			new Notice(`File uploaded: ${file.name}`)
+			this.notice(`File uploaded: ${file.name}`)
 			this.updateCodeBlock(editor, { id: driveItem.id, title }, placeholderLineCount)
 		} else {
-			new Notice(`File upload failed: ${file.name}`)
+			this.notice(`File upload failed: ${file.name}`)
 		}
 	}
 
@@ -220,5 +220,14 @@ export default class OneDrivePlugin extends Plugin {
 			ch: 0,
 		})
 		editor.setCursor({ line: initialCursor.line + codeBlockLineCount, ch: 0 })
+	}
+
+	notice(message: string) {
+		const pluginName = this.manifest.name
+		const div = document.createElement('div')
+		div.innerHTML = `<div>${pluginName}</div><div>${message}</div>`
+		const docFragment = document.createDocumentFragment()
+		docFragment.appendChild(div)
+		new Notice(docFragment)
 	}
 }
