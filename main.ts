@@ -50,7 +50,10 @@ export default class OneDrivePlugin extends Plugin {
 		this.addSettingTab(this.settingsTab)
 	}
 
-	onunload() {}
+	onunload() {
+		this.callbacks = []
+		queryClient.clear()
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData())
