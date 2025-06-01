@@ -8,7 +8,7 @@ import {
 } from '@microsoft/microsoft-graph-client'
 import type { DriveItem } from '@microsoft/microsoft-graph-types'
 import { Notice } from 'obsidian'
-import type { OneDrivePluginSettings } from '../main'
+import type { OneDrivePluginSettings } from './onedrive-plugin'
 import type { AuthProvider } from './auth-provider'
 
 export class GraphClient {

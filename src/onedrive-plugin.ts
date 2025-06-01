@@ -1,12 +1,12 @@
 import type { AccountInfo } from '@azure/msal-common'
 import { type App, type Editor, Notice, Plugin, type PluginManifest, type TFile } from 'obsidian'
 import { type Component, mount } from 'svelte'
-import { AuthProvider } from './src/auth-provider'
-import { GraphClient } from './src/graph-client'
-import { getCodeBlock } from './src/markdown-utils'
-import { OneDriveWidget } from './src/onedrive-widget'
-import { queryClient } from './src/onedrive-widget/query-client'
-import { OneDriveSettingTab } from './src/settings-tab'
+import { AuthProvider } from './auth-provider'
+import { GraphClient } from './graph-client'
+import { getCodeBlock } from './markdown-utils'
+import { OneDriveWidget } from './onedrive-widget'
+import { queryClient } from './onedrive-widget/query-client'
+import { OneDriveSettingTab } from './settings-tab'
 import mime from 'mime'
 
 export interface OneDrivePluginSettings {
@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS: OneDrivePluginSettings = {
 
 type Callback = (value: typeof DEFAULT_SETTINGS) => void
 
-export default class OneDrivePlugin extends Plugin {
+export class OneDrivePlugin extends Plugin {
 	account: AccountInfo | null = null
 	settings!: OneDrivePluginSettings
 	authProvider: AuthProvider
@@ -97,7 +97,7 @@ export default class OneDrivePlugin extends Plugin {
 		if (__DEV__) {
 			this.registerMarkdownCodeBlockProcessor('onedrive-dev', async (source, el) => {
 				const { default: OneDriveWidgetDev } = await import(
-					'./src/onedrive-widget/onedrive-widget-dev.svelte'
+					'./onedrive-widget/onedrive-widget-dev.svelte'
 				)
 				this.mountSvelteComponent(OneDriveWidgetDev, el, source)
 			})

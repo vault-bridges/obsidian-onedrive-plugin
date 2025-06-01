@@ -3,7 +3,7 @@ import type { DriveItem } from '@microsoft/microsoft-graph-types'
 import { File } from 'lucide-svelte'
 import { Menu, Notice, Platform, normalizePath } from 'obsidian'
 import { getContext } from 'svelte'
-import type OneDrivePlugin from '../../main'
+import type { OneDrivePlugin } from '../onedrive-plugin'
 import { FileInfoModal } from './file-info-modal'
 
 type Props = {

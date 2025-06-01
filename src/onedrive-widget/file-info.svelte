@@ -3,7 +3,7 @@ import type { DriveItem } from '@microsoft/microsoft-graph-types'
 import type { CreateQueryResult } from '@tanstack/svelte-query'
 import { Ban, LoaderCircle } from 'lucide-svelte'
 import { getContext } from 'svelte'
-import type OneDrivePlugin from '../../main'
+import type { OneDrivePlugin } from '../onedrive-plugin'
 import { humanFileSize } from '../file-info-utils'
 import FileMenu from './file-menu.svelte'
 

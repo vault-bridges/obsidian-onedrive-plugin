@@ -1,5 +1,5 @@
 import { type ButtonComponent, Notice, PluginSettingTab, Setting } from 'obsidian'
-import type OneDrivePlugin from '../main'
+import type { OneDrivePlugin } from './onedrive-plugin'
 
 export class OneDriveSettingTab extends PluginSettingTab {
 	plugin: OneDrivePlugin

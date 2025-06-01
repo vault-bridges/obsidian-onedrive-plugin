@@ -1,7 +1,7 @@
 <script lang="ts">
 import { createQuery } from '@tanstack/svelte-query'
 import { getContext } from 'svelte'
-import type OneDrivePlugin from '../../main'
+import type { OneDrivePlugin } from '../onedrive-plugin'
 import FileInfo from './file-info.svelte'
 
 type Props = {
