@@ -67,12 +67,14 @@ export default class OneDrivePlugin extends Plugin {
 	}
 
 	registerEventHandlers() {
-		this.app.workspace.on('editor-drop', async (evt, editor) => {
-			if (evt.defaultPrevented) return
-			const file = evt.dataTransfer?.files[0]
-			if (file?.type === 'application/pdf') {
-				evt.preventDefault()
-				await this.uploadFile(file, editor)
+		this.app.workspace.on('editor-drop', async (event, editor) => {
+			if (event.defaultPrevented) return
+			if (!event.dataTransfer) return
+			for (const file of Array.from(event.dataTransfer.files)) {
+				if (file?.type === 'application/pdf') {
+					event.preventDefault()
+					await this.uploadFile(file, editor)
+				}
 			}
 		})
 	}
