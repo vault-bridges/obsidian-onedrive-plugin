@@ -1,6 +1,6 @@
 import type { AccountInfo } from '@azure/msal-common'
-import { type App, type Editor, MarkdownView, Notice, Plugin, type PluginManifest } from 'obsidian'
-import { mount } from 'svelte'
+import { type App, type Editor, Notice, Plugin, type PluginManifest } from 'obsidian'
+import { type Component, mount } from 'svelte'
 import { AuthProvider } from './src/auth-provider'
 import { GraphClient } from './src/graph-client'
 import { getCodeBlock } from './src/markdown-utils'
@@ -40,84 +40,12 @@ export default class OneDrivePlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings()
-		this.account = await this.authProvider.init()
-		this.client = new GraphClient(this.authProvider)
-
-		this.app.workspace.on('editor-drop', async (evt, editor) => {
-			if (evt.defaultPrevented) return
-			const file = evt.dataTransfer?.files[0]
-			if (file?.type === 'application/pdf') {
-				evt.preventDefault()
-				await this.uploadFile(file, editor)
-			}
-		})
-
+		await this.initClient()
+		this.registerEventHandlers()
+		this.registerMarkdownProcessors()
+		this.registerCommands()
+		this.registerProtocolHandlers()
 		this.addSettingTab(this.settingsTab)
-
-		this.registerMarkdownCodeBlockProcessor('onedrive', (source, el) => {
-			mount(OneDriveWidget, { target: el, props: { source }, context: new Map([['plugin', this]]) })
-		})
-
-		if (__DEV__) {
-			this.registerMarkdownCodeBlockProcessor('onedrive-dev', async (source, el) => {
-				const { default: OneDriveWidgetDev } = await import(
-					'./src/onedrive-widget/onedrive-widget-dev.svelte'
-				)
-				mount(OneDriveWidgetDev, {
-					target: el,
-					props: { source },
-					context: new Map([['plugin', this]]),
-				})
-			})
-		}
-
-		this.registerObsidianProtocolHandler('onedrive', async (path) => {
-			this.account = await this.authProvider.handleRedirect(path.hash)
-			this.settingsTab.display()
-		})
-
-		this.addCommand({
-			id: 'upload-file',
-			name: 'Upload file',
-			callback: () => {
-				const input = document.createElement('input')
-				input.type = 'file'
-				input.onchange = (_) => {
-					if (input.files) {
-						const files = Array.from(input.files)
-						const view = this.app.workspace.getActiveViewOfType(MarkdownView)
-						if (view && files.length > 0) {
-							this.uploadFile(files[0], view.editor)
-						}
-					}
-				}
-				input.click()
-			},
-		})
-
-		this.addCommand({
-			id: 'upload-current-note-files',
-			name: 'Upload files from the current note',
-			editorCallback: async (editor, ctx) => {
-				if (ctx instanceof MarkdownView) {
-					const content = editor.getValue()
-					const fileRegex = /\[\[([^\]]+)]]/g
-					const matches = Array.from(content.matchAll(fileRegex))
-					const fileLinks = matches.map((match) => match[1].split('|')[0])
-
-					for (const fileLink of fileLinks) {
-						const file = this.app.vault.getFileByPath(fileLink)
-						if (file) {
-							const fileBinary = await this.app.vault.readBinary(file)
-							const fileObj = new File([fileBinary], file.name)
-							await this.uploadFile(fileObj, editor)
-						} else {
-							console.error(`File not found: ${fileLink}`)
-						}
-					}
-				}
-			},
-		})
 	}
 
 	onunload() {}
@@ -133,28 +61,136 @@ export default class OneDrivePlugin extends Plugin {
 		}
 	}
 
+	async initClient() {
+		this.account = await this.authProvider.init()
+		this.client = new GraphClient(this.authProvider)
+	}
+
+	registerEventHandlers() {
+		this.app.workspace.on('editor-drop', async (evt, editor) => {
+			if (evt.defaultPrevented) return
+			const file = evt.dataTransfer?.files[0]
+			if (file?.type === 'application/pdf') {
+				evt.preventDefault()
+				await this.uploadFile(file, editor)
+			}
+		})
+	}
+
+	mountSvelteComponent(component: Component<{ source: string }>, el: HTMLElement, source: string) {
+		mount(component, {
+			target: el,
+			props: { source },
+			context: new Map([['plugin', this]]),
+		})
+	}
+
+	registerMarkdownProcessors() {
+		this.registerMarkdownCodeBlockProcessor('onedrive', (source, el) => {
+			this.mountSvelteComponent(OneDriveWidget, el, source)
+		})
+
+		if (__DEV__) {
+			this.registerMarkdownCodeBlockProcessor('onedrive-dev', async (source, el) => {
+				const { default: OneDriveWidgetDev } = await import(
+					'./src/onedrive-widget/onedrive-widget-dev.svelte'
+				)
+				this.mountSvelteComponent(OneDriveWidgetDev, el, source)
+			})
+		}
+	}
+
+	async handleUploadFileCommand(editor: Editor) {
+		const input = document.createElement('input')
+		input.type = 'file'
+		input.onchange = (_) => {
+			if (!input.files) return
+			const files = Array.from(input.files)
+			if (files.length > 0) {
+				this.uploadFile(files[0], editor)
+			}
+		}
+		input.click()
+		input.remove()
+	}
+
+	async handleUploadCurrentNoteFilesCommand(editor: Editor) {
+		const content = editor.getValue()
+		const fileRegex = /\[\[([^\]]+)]]/g
+		const matches = Array.from(content.matchAll(fileRegex))
+		const fileLinks = matches.map((match) => match[1].split('|')[0])
+		for (const fileLink of fileLinks) {
+			const file = this.app.vault.getFileByPath(fileLink)
+			if (file) {
+				const fileBinary = await this.app.vault.readBinary(file)
+				const fileObj = new File([fileBinary], file.name)
+				await this.uploadFile(fileObj, editor)
+			} else {
+				console.error(`File not found: ${fileLink}`)
+			}
+		}
+	}
+
+	registerCommands() {
+		this.addCommand({
+			id: 'upload-file',
+			name: 'Upload file',
+			editorCallback: this.handleUploadFileCommand.bind(this),
+		})
+
+		this.addCommand({
+			id: 'upload-current-note-files',
+			name: 'Upload files from the current note',
+			editorCallback: this.handleUploadCurrentNoteFilesCommand.bind(this),
+		})
+	}
+
+	registerProtocolHandlers() {
+		this.registerObsidianProtocolHandler('onedrive', async (path) => {
+			this.account = await this.authProvider.handleRedirect(path.hash)
+			this.settingsTab.display()
+		})
+	}
+
 	subscribe(callback: Callback) {
 		this.callbacks.push(callback)
 	}
 
 	async uploadFile(file: File, editor: Editor) {
 		new Notice('Start upload')
-		const initialCursor = editor.getCursor()
 		const title = file.name.replace(/.[^.]+$/, '') // Remove file extension
-		const placeholder = getCodeBlock({ title })
-		const placeholderLineCount = placeholder.split('\n').length
-		editor.replaceRange(placeholder, initialCursor)
+		const placeholderLineCount = this.insertCodeBlock(editor, { title })
 		const driveItem = await this.client.uploadFile(file, this.settings)
 		if (driveItem?.id) {
 			queryClient.setQueryData(['file', driveItem.id], driveItem)
 			new Notice('File uploaded')
-			const record = { id: driveItem.id, title }
-			editor.replaceRange(getCodeBlock(record), initialCursor, {
-				line: initialCursor.line + placeholderLineCount,
-				ch: 0,
-			})
+			this.updateCodeBlock(editor, { id: driveItem.id, title }, placeholderLineCount)
 		} else {
 			new Notice('File upload failed')
 		}
+	}
+
+	/**
+	 * Initial code block placement, without moving the cursor
+	 */
+	insertCodeBlock(editor: Editor, data: Record<string, string>) {
+		const initialCursor = editor.getCursor()
+		const codeBlock = getCodeBlock(data)
+		editor.replaceRange(codeBlock, initialCursor)
+		return codeBlock.split('\n').length
+	}
+
+	/**
+	 * Update the code block with new data, moves cursor to the end of the code block
+	 */
+	updateCodeBlock(editor: Editor, data: Record<string, string>, placeholderLineCount: number) {
+		const initialCursor = editor.getCursor()
+		const codeBlock = getCodeBlock(data)
+		const codeBlockLineCount = codeBlock.split('\n').length
+		editor.replaceRange(codeBlock, initialCursor, {
+			line: initialCursor.line + placeholderLineCount,
+			ch: 0,
+		})
+		editor.setCursor({ line: initialCursor.line + codeBlockLineCount, ch: 0 })
 	}
 }
