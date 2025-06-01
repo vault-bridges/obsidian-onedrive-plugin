@@ -1,5 +1,5 @@
 import type { AccountInfo } from '@azure/msal-common'
-import { type App, type Editor, Notice, Plugin, type PluginManifest } from 'obsidian'
+import { type App, type Editor, Notice, Plugin, type PluginManifest, type TFile } from 'obsidian'
 import { type Component, mount } from 'svelte'
 import { AuthProvider } from './src/auth-provider'
 import { GraphClient } from './src/graph-client'
@@ -125,15 +125,12 @@ export default class OneDrivePlugin extends Plugin {
 		const nonMarkdownFiles = this.app.vault.getFiles().filter((file) => file.extension !== 'md')
 
 		for (const { fileName, displayTitle } of fileLinks) {
-			const vaultFile = nonMarkdownFiles.find((file) => file.name === fileName)
-			if (!vaultFile) {
-				console.error(`File not found: ${fileName}`)
-				continue
-			}
+			const vaultFile = this.findFileInVault(fileName, nonMarkdownFiles)
+			if (!vaultFile) continue
 
 			try {
-				const fileContent = await this.app.vault.readBinary(vaultFile)
-				const file = new File([fileContent], vaultFile.name)
+				const fileBinary = await this.app.vault.readBinary(vaultFile)
+				const file = new File([fileBinary], vaultFile.name)
 				if (!this.isFileSupported(file)) continue
 				await this.uploadFile(file, editor, displayTitle)
 			} catch (error) {
@@ -150,6 +147,19 @@ export default class OneDrivePlugin extends Plugin {
 			const [fileName, displayTitle] = match[1].split('|')
 			return { fileName, displayTitle }
 		})
+	}
+
+	findFileInVault(fileName: string, vaultFiles: TFile[]) {
+		const files = vaultFiles.filter((file) => file.name === fileName)
+		if (files.length === 0) {
+			console.error(`File not found: ${fileName}`)
+			return null
+		}
+		if (files.length > 1) {
+			console.error(`Multiple files found with name ${fileName}. Not supported.`)
+			return null
+		}
+		return files[0]
 	}
 
 	registerCommands() {
