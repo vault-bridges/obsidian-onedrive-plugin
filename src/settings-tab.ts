@@ -106,10 +106,19 @@ export class OneDriveSettingTab extends PluginSettingTab {
 			.setDesc('Upload files with the same name as existing files')
 			.addDropdown((dropdown) =>
 				dropdown
-					.addOptions({ fail: 'Fail', rename: 'Rename', replace: 'Replace' })
+					.addOptions({
+						fail: 'Fail',
+						rename: 'Rename',
+						replace: 'Replace',
+						'use-existing': 'Use existing',
+					})
 					.setValue(this.plugin.settings.conflictBehavior)
 					.onChange(async (value) => {
-						this.plugin.settings.conflictBehavior = value as 'fail' | 'rename' | 'replace'
+						this.plugin.settings.conflictBehavior = value as
+							| 'fail'
+							| 'rename'
+							| 'replace'
+							| 'use-existing'
 						await this.plugin.saveSettings()
 					}),
 			)

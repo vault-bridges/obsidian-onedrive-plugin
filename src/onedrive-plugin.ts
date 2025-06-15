@@ -12,7 +12,7 @@ import { OneDriveSettingTab } from './settings-tab'
 export interface OneDrivePluginSettings {
 	oneDriveDirectory: string
 	showPreview: boolean
-	conflictBehavior: 'rename' | 'fail' | 'replace'
+	conflictBehavior: 'rename' | 'fail' | 'replace' | 'use-existing'
 	supportedFiles: string
 }
 

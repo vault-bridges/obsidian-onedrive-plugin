@@ -5,11 +5,12 @@ import {
 	OneDriveLargeFileUploadTask,
 	type Range,
 	type UploadEventHandlers,
+	GraphError,
 } from '@microsoft/microsoft-graph-client'
 import type { DriveItem } from '@microsoft/microsoft-graph-types'
 import { Notice } from 'obsidian'
-import type { OneDrivePluginSettings } from './onedrive-plugin'
 import type { AuthProvider } from './auth-provider'
+import type { OneDrivePluginSettings } from './onedrive-plugin'
 
 export class GraphClient {
 	authProvider: AuthProvider
@@ -68,28 +69,40 @@ export class GraphClient {
 			extraCallbackParam: true,
 		}
 
+		const conflictBehavior =
+			settings.conflictBehavior === 'use-existing' ? 'fail' : settings.conflictBehavior
+
 		const options: OneDriveLargeFileUploadOptions = {
 			uploadSessionURL: `/drive/special/approot:/${settings.oneDriveDirectory}/${file.name}:/createUploadSession`,
 			fileName: file.name,
 			rangeSize: 1024 * 1024,
-			conflictBehavior: settings.conflictBehavior,
+			conflictBehavior,
 			uploadEventHandlers,
 		}
 
 		const fileObject = new FileUpload(await file.arrayBuffer(), file.name, file.size)
 
-		const uploadTask = await OneDriveLargeFileUploadTask.createTaskWithFileObject(
-			client,
-			fileObject,
-			options,
-		).catch((error) => {
+		try {
+			const uploadTask = await OneDriveLargeFileUploadTask.createTaskWithFileObject(
+				client,
+				fileObject,
+				options,
+			)
+			const uploadResult = await uploadTask.upload()
+			return uploadResult.responseBody as DriveItem
+		} catch (error) {
+			if (
+				error instanceof GraphError &&
+				settings.conflictBehavior === 'use-existing' &&
+				error.code === 'nameAlreadyExists'
+			) {
+				new Notice(`File ${file.name} already exists. Using existing file.`)
+				return await this.getFileByName(file.name, settings)
+			}
 			const message = error instanceof Error ? error.message : error
 			new Notice(`Can't upload file: ${message}`)
 			console.error(error)
-		})
-		if (!uploadTask) return
-		const uploadResult = await uploadTask.upload()
-		return uploadResult.responseBody as DriveItem
+		}
 	}
 
 	async getFileInfo(fileId: string) {
@@ -97,6 +110,13 @@ export class GraphClient {
 		return (await client
 			.api(`/me/drive/items/${fileId}`)
 			.query({ expand: 'thumbnails' })
+			.get()) as DriveItem
+	}
+
+	async getFileByName(fileName: string, settings: OneDrivePluginSettings) {
+		const client = await this.getClient()
+		return (await client
+			.api(`/drive/special/approot:/${settings.oneDriveDirectory}/${fileName}`)
 			.get()) as DriveItem
 	}
 }
